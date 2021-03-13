@@ -1,14 +1,60 @@
-<h1>Register</h1>
-<%- include('partials/messages') %> 
+<div class="form-signin w-50 mx-auto">
+    
+    
+    <form action="/users/register" method="post">
+        <h1 class="h3 mb-3 font-weight-normal">Register:</h1>
+        <%- include('partials/messages') %> 
 
-<form action="/users/register" method="post">
-    <input name="email" placeholder="Email">
-    <input name="first_name" placeholder="First name">
-    <input name="last_name" placeholder="Last name">
-    <input name="username" placeholder="Username">
-    <input type="password" name="password" placeholder="Password">
-    <input type="submit" value="Register">
-</form>
+        <label for="input_email" class="visually-hidden">Email</label>
+        <input 
+        name="email" 
+        id="input_email"
+        type="email"
+        value="<%= typeof email != 'undefined' ? email : '' %>"
+        placeholder="Email"
+        required
+        autofocus>
 
+        <label for="input_first_name" class="visually-hidden">First Name</label>
+        <input 
+        name="first_name" 
+        id="input_first_name"
+        type="text"
+        value="<%= typeof first_name != 'undefined' ? first_name : '' %>"
+        placeholder="First name"
+        required>
 
-<p>Already registered? <a href="/users/login">Log in here</a> </p>
+        <label for="input_last_name" class="visually-hidden">Last Name</label>
+        <input 
+        name="last_name" 
+        id="input_last_name"
+        type="text"
+        value="<%= typeof last_name != 'undefined' ? last_name : '' %>"
+        placeholder="Last name"
+        required>
+
+        <label for="input_username" class="visually-hidden">Username</label>
+        <input 
+        name="username" 
+        id="input_username"
+        type="text"
+        value="<%= typeof username != 'undefined' ? username : '' %>"
+        placeholder="Username"
+        required>
+
+        <label for="input_password" class="visually-hidden">Password</label>
+        <input 
+        name="password" 
+        id="input_password"
+        type="password"
+        placeholder="Password"
+        required>
+
+        <input class="btn btn-primary" type="submit" value="Register">
+    </form>
+    
+    <div class="mt-4">
+        <p>Already registered?</p> 
+        <a href="/users/login" class="btn btn-primary">Log in here</a> 
+    </div>
+</div>
