@@ -10,7 +10,14 @@ router.post('/login', (req, res, next) => {
     passport.authenticate('local', {
         successRedirect: '/dashboard',
         failureRedirect: '/users/login',
-        failureFlash: true
+        failureFlash: {
+            type: 'error_msg',
+            message: 'Invalid email and/or password.'
+        },
+        successFlash: {
+            type: 'success_msg',
+            message: 'Successfully logged in.'
+        }
     })(req, res, next)
 })
 
@@ -33,39 +40,45 @@ router.post('/register', (req, res) => {
         username
     } = req.body
 
-    console.log(req.body)
-
-    if (!first_name || !last_name || !email || !password) {
-        errors.push({ message: 'Please fill out all fields.'})
-    }
-    if (password.length < 6) {
-        errors.push({ message: 'Password needs to be at least 6 characters long.'})
-    }
-
-    if (errors.length > 0) {
-        res.render('register', {
-            errors, first_name, last_name, email, username
-        })
-    } else {
-        const new_user = new User({
-            first_name, last_name, email, username, password
-        })
-
-        bcrypt.hash(password, 10, function (error, hash) {
-            if (error) {
-                console.log(error)
-            }
-            new_user.password = hash
-
-            new_user
+    User.findOne({ email: email }).then(data => {
+        // check that email is not already registered
+        if (data != null) {
+            errors.push({ message: 'Email is already registered.'})
+        }
+        
+        if (!first_name || !last_name || !email || !password) {
+            errors.push({ message: 'Please fill out all fields.'})
+        }
+        if (password.length < 6) {
+            errors.push({ message: 'Password needs to be at least 6 characters long.'})
+        }
+        
+        //render register ejs again with current values except password, to show errors
+        if (errors.length > 0) {
+            res.render('register', {
+                errors, first_name, last_name, email, username
+            })
+        } else {
+            const new_user = new User({
+                first_name, last_name, email, username, password
+            })
+            
+            bcrypt.hash(password, 10, function (error, hash) {
+                if (error) {
+                    console.log(error)
+                }
+                new_user.password = hash
+                
+                new_user
                 .save()
-                .then(value => {
+                .then(() => {
                     req.flash('success_msg', 'Registration succesful!')
                     res.redirect('/users/login')
                 })
                 .catch(error => console.log(error))
-        })
-    }
+            })
+        }
+    })
 })
 
 module.exports = router;
