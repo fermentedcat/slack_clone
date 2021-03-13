@@ -29,6 +29,12 @@ router.get('/login', (req, res) => {
     res.render('login')
 })
 
+router.get('/logout', (req, res) => {
+    req.logout()
+    req.flash('success_msg', 'Successfully logged out.')
+    res.redirect('/users/login')
+})
+
 router.post('/register', (req, res) => {
     let errors = []
 
@@ -45,7 +51,7 @@ router.post('/register', (req, res) => {
         if (data != null) {
             errors.push({ message: 'Email is already registered.'})
         }
-        
+        // check fields are filled in correctly
         if (!first_name || !last_name || !email || !password) {
             errors.push({ message: 'Please fill out all fields.'})
         }
