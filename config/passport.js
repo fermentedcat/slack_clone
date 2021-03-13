@@ -14,7 +14,7 @@ module.exports = function (passport) {
                 }
 
                 if (!user) {
-                    return done(null, false, { message: 'Incorrect email or password.'})
+                    return done(null, false)
                 }
 
                 bcrypt.compare(password, user.password, (error, isMatch) => {
@@ -24,7 +24,7 @@ module.exports = function (passport) {
                     if (isMatch) {
                         return done(null, user)
                     } else {
-                        return done(null, false, { message: 'Incorrect email or password.'})
+                        return done(null, false)
                     }
                 })
             })
