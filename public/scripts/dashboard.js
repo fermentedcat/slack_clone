@@ -1,4 +1,4 @@
-const createChannel = () => {
+function createChannel() {
 
     const channel = {
                 name: document.getElementById('channel_name').value,
