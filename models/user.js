@@ -28,10 +28,9 @@ const UserSchema = new Schema({
         enum: ['User', 'Admin'], 
         default: 'User'
     },
-    online_status: {
-        type: String,
-        enum: ['Online', 'Offline'], 
-        default: 'Offline'
+    is_online: {
+        type: Boolean,
+        default: false
     },
     phone: {
         type: String,
@@ -44,7 +43,21 @@ const UserSchema = new Schema({
     date_registered: {
         type: Date,
         default: Date.now()
-    }
+    },
+    pending_invites: [{
+        invited_by: {
+            type: Schema.Types.ObjectId, 
+            ref: 'User'
+        },
+        channel_id: {
+            type: Schema.Types.ObjectId, 
+            ref: 'Channel'
+        }
+    }],
+    profile_pic: {
+        type: String,
+        default: 'default.png'
+    },
 })
 
 module.exports = mongoose.model('User', UserSchema)
