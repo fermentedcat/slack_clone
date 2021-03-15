@@ -2,8 +2,10 @@ const express = require('express')
 const router = express.Router()
 
 const User = require('../models/user')
+const Channel = require('../models/channel')
 const bcrypt = require('bcrypt')
 const passport = require('passport')
+const { session } = require('passport')
 
 router.post('/login', (req, res, next) => {
     console.log("log in");
@@ -33,6 +35,78 @@ router.get('/logout', (req, res) => {
     req.logout()
     req.flash('success_msg', 'Successfully logged out.')
     res.redirect('/users/login')
+})
+
+router.get('/:id', (req, res) => {
+    const session_user = req.session.passport.user
+    User.findById(req.params.id).then((user) => {
+        let invites = []
+        // Find pending invites if user is current session user
+        if (user.pending_invites.length > 0 && session_user == req.params.id) {
+            console.log(user.pending_invites);
+            for (invite of user.pending_invites) {
+                Channel.findById(invite.channel_id).then((channel) => {
+                    User.findById(invite.invited_by).then((invited_by) => {
+                        invites.push({
+                            channel: channel.name, 
+                            invited_by: invited_by.username, 
+                            _id: invite._id
+                        })
+                        res.render('profile', {session_user, user, invites})
+                    }).catch(error => console.log(error))
+                }).catch(error => console.log(error))
+            }
+        } else {
+            res.render('profile', {session_user, user, invites})
+        }
+    }).catch(error => console.log(error))
+})
+
+// add invites to user db
+router.put('/invite-to-channel/:id', (req, res) => {
+    const user = req.session.passport.user
+    console.log("send out invites");
+    const invites = req.body
+    console.log(invites);
+    for (invite of invites) {
+        User.findByIdAndUpdate(
+            invite,
+            { 
+                $push: {
+                    pending_invites: {
+                        invited_by: user, 
+                        channel_id: req.params.id
+                    }
+                } 
+            }, 
+            {new: true}, (error, docs) => {
+                if (error) {
+                    console.log(error)
+                }
+            })
+    }
+    res.end()
+})
+
+app.post('/upload-profile-pic', (req, res) => {
+    const user = req.session.passport.user
+
+    try {
+        if (req.files) {
+            let profile_pic = req.files.profile_pic
+
+            let file_name = `./public/images/profile/${ user }`
+
+            profile_pic.mv(file_name)
+
+            res.render(`/users/${user}`)
+        } else {
+            req.flash('error_msg', 'Error uploading file. Please try another picture.')
+            res.end(`<h1>No file uploaded!</h1>`)
+        }
+    } catch (error) {
+        res.end(error)
+    }
 })
 
 router.post('/register', (req, res) => {
