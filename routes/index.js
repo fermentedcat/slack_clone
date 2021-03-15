@@ -1,10 +1,19 @@
 const express = require('express')
 const router = express.Router()
 
+const Channel = require('../models/channel')
+const User = require('../models/user')
+
+
+
 const {ensureAuthenticated} = require('../config/auth.js')
 
 router.get('/dashboard', ensureAuthenticated, (req, res) => {
-    res.render('dashboard', { user: req.user })
+    Channel.find({subscribers: req.user}).then((channels) => {
+        User.find().then((users) => {
+            res.render('dashboard', { user: req.user, channels, users})
+        })
+    })
 })
 
 //* lägg till id
