@@ -4,6 +4,17 @@
 <h4>Hello, <%= user.first_name %> </h4>
 
 <div id="unreads">
+    <h4>Online</h4>
+    <ul>
+        <% for (user of users) { %> 
+            <li><span><%= user.is_online === true ? "🟢 " : "⚪️ " %></span>
+                <a href="/users/<%= user._id %>"><%= user.username %></a>
+            </li>
+        <% } %> 
+    </ul>
+</div>
+
+<div id="unreads">
     <h4>Unreads</h4>
     <ul>
         <li><a href="">Gym & Tonic</a></li>
@@ -14,9 +25,9 @@
 <div id="channels">
     <h4>Channels</h4>
     <ul>
-        <li><a href="">Full på länk</a></li>
-        <li><a href="">Hikikomori support group</a></li>
-        <li><a href="">Gym & Tonic</a></li>
+        <% for (channel of channels) { %> 
+            <li><a href="/channels/<%= channel._id %>"><%= channel.name %></a></li>
+        <% } %> 
     </ul>
     <button 
         class="btn btn-primary" 
@@ -35,7 +46,6 @@
     <a href="">Add teammates</a>
 </div>
 
-<a href="/users/logout">Logout</a>
 
 
 <div class="modal" id="add_channel_modal" tabindex="-1">
@@ -81,9 +91,11 @@
     </div>
   </div>
 
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/public/scripts/dashboard.js"></script>
+
 <script
 src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
 integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
 crossorigin="anonymous"
 ></script>
-<script src="/public/scripts/dashboard.js"></script>
