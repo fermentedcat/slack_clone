@@ -7,7 +7,7 @@
                 <p> <%= post.author %> <span> <%= post.published %> </span></p>
                 <h4> <%= post.content %> </h4>
             </div>
-            <button class="btn btn-primary reply_btn">Reply</button>
+            <button class="btn btn-primary reply_btn" onclick="toggleReply()">Reply</button>
             <% for (reply of post.replies) { %>
                 <div class="post_reply">
                     <p> <%= reply.author %> <span> <%= reply.time %> </span></p>
@@ -34,13 +34,16 @@
         <button class="btn btn-primary">Send</button>
     </form>
 </div>
-<button 
-    id="invite_btn" 
-    class="btn btn-primary"
-    data-bs-toggle="modal" 
-    data-bs-target="#invite_modal">
-    Invite teammates to join <%= channel.name %> 
-</button>
+
+<% if (channel.private) { %> 
+    <button 
+        id="invite_btn" 
+        class="btn btn-primary"
+        data-bs-toggle="modal" 
+        data-bs-target="#invite_modal">
+        Invite teammates to join <%= channel.name %> 
+    </button>
+<% } %> 
 
 <div class="modal" id="invite_modal" tabindex="-1">
     <div class="modal-dialog">
@@ -52,21 +55,20 @@
         <div class="modal-body">
             <form action="/channels/add" method="post">
                 <ul>
-
+                    <% for (user of non_subscribers) {%> 
+                        <li>
+                            <input 
+                                name="non_subscriber" 
+                                type="checkbox" 
+                                value="<%= user._id %>" 
+                                id="<%= user._id %>"
+                            >
+                            <label for="<%= user._id %>">
+                                <%= user.first_name %> <%= user.last_name %>
+                            </label>
+                        </li>
+                    <% } %>
                 </ul>
-                <% for (user of non_subscribers) {%> 
-                    <li>
-                        <input 
-                        name="non_subscriber" 
-                        type="checkbox" 
-                        value="<%= user._id %>" 
-                        id="<%= user._id %>"
-                        >
-                        <label for="<%= user._id %>">
-                            <%= user.first_name %> <%= user.last_name %>
-                        </label>
-                    </li>
-                <% } %>
             </form>
                 
             </div>
