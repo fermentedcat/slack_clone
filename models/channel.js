@@ -6,12 +6,9 @@ const ChannelSchema = new Schema({
         type: String,
         required: true
     },
-    type: {
-        type: String,
-        required: true,
-        type: String,
-        enum: ['Channel', 'Direct'],
-        default: "Channel"
+    private: {
+        type: Boolean,
+        default: false
     },
     description: {
         type: String,
@@ -64,6 +61,12 @@ const ChannelSchema = new Schema({
         }]
     }]
 })
+
+ChannelSchema
+    .virtual('channelName')
+    .get(function() {
+       return this.name
+    })
 
 
 module.exports = mongoose.model('Channel', ChannelSchema)

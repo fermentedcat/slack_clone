@@ -36,10 +36,6 @@ const UserSchema = new Schema({
         type: String,
         required: false
     },
-    avatar: {
-        type: String,
-        default: './public/images/standard_avatar.jpg'
-    },
     date_registered: {
         type: Date,
         default: Date.now()
@@ -54,9 +50,13 @@ const UserSchema = new Schema({
             ref: 'Channel'
         }
     }],
-    profile_pic: {
+    occupation: {
         type: String,
-        default: 'default.png'
+        required: false
+    },
+    fav_pizza: {
+        type: String,
+        required: false
     },
 })
 
