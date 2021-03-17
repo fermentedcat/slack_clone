@@ -1,11 +1,13 @@
 <h1><%= user.first_name %> <%= user.last_name %></h1>
-<div id="profile_pic" data-id="<%= user._id %> ">
-    <img src="/public/images/profile/<%= user.profile_pic %>" alt="<%= user.username %>'s profile picture.">
+<div>
+    <div class="w-50 h-50" id="profile_pic" data-id="<%= user._id %>">
+        <img class="img-fluid" src="<%= img_url %>" alt="<%= user.username %>'s profile picture.">
+    </div>
+    <% if (session_user == user._id) {%> 
+        <button id="image_btn" class="btn btn-primary">Upload new image</button>
+    <% } %> 
 </div>
-<% if (session_user == user._id) {%> 
-    <button id="image_btn" class="btn btn-primary">Upload new image</button>
-<% } %> 
-
+        
 <h5>Title: <%= user.title %> </h5>
 <h5>Registered: <%= user.date_registered %> </h5>
 <h5>Display name: <%= user.username %></h5>
@@ -24,5 +26,101 @@
             </div>
         <% } %>  
     <% } %> 
-    <button class="btn btn-primary">Edit profile</button>
+    <button 
+        class="btn btn-primary" 
+        data-bs-toggle="modal" 
+        data-bs-target="#edit_profile_modal">
+        Edit profile
+    </button>
 <% } %> 
+
+
+
+<div class="modal" id="edit_profile_modal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form>
+                <div class="mb-3">
+                    <label for="first_name" class="form-label">First name</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="first_name"
+                        value="<%= user.first_name %>"
+                        required
+                        autofocus
+                    />
+                </div>
+                <div class="mb-3">
+                    <label for="last_name" class="form-label">Last name</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="last_name"
+                        value="<%= user.last_name %>"
+                        required
+                    />
+                </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Display name</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="username"
+                        placeholder="Display name"
+                        value="<%= user.username %>"
+                        required
+                    />
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone number</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="phone"
+                        placeholder="Phone number"
+                        value="<%= user.phone %>"
+                    />
+                </div>
+                <div class="mb-3">
+                    <label for="fav_pizza" class="form-label">Fav pizza</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="fav_pizza"
+                        placeholder="Hawaii"
+                        value="<%= user.fav_pizza %>"
+                    />
+                </div>
+    
+                <div class="mb-3">
+                    <label for="occupation" class="form-label">What do I do</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="occupation"
+                        placeholder="What do I do"
+                        value="<%= user.occupation %>"
+                        aria-describedby="occupationHelp"
+                    />
+                    <div id="occupationHelp" class="form-text">
+                        Let people know what you're doing with your life.
+                    </div>
+                </div>
+            </form>
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="editUserInfo()">Save</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
+
+<script src="/public/scripts/profile.js"></script>
