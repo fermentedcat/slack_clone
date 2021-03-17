@@ -22,9 +22,9 @@
     </ul>
 </div>
 
-<div id="channels">
+<div>
     <h4>Channels</h4>
-    <ul>
+    <ul id="channels">
         <% for (channel of channels) { %> 
             <li><a href="/channels/<%= channel._id %>"><%= channel.name %></a></li>
         <% } %> 
@@ -79,6 +79,18 @@
                     />
                     <div id="descriptionHelp" class="form-text">
                         What's this channel about?
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="private" class="form-label">Make this a private channel </label>
+                    <input
+                        type="checkbox"
+                        id="private"
+                        aria-describedby="privateHelp"
+                    />
+                    <div id="privateHelp" class="form-text">
+                        Team mates will be able to join by invites.
                     </div>
                 </div>
             </form>
