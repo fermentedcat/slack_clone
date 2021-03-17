@@ -1,60 +1,78 @@
-<div class="form-signin w-50 mx-auto">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <title>s1ack</title>
+</head>
+<body>
+
+    <div class="form-signin w-50 mx-auto">
     
     
-    <form action="/users/register" method="post">
-        <h1 class="h3 mb-3 font-weight-normal">Register:</h1>
-        <%- include('partials/messages') %> 
-
-        <label for="input_email" class="visually-hidden">Email</label>
-        <input 
-        name="email" 
-        id="input_email"
-        type="email"
-        value="<%= typeof email != 'undefined' ? email : '' %>"
-        placeholder="Email"
-        required
-        autofocus>
-
-        <label for="input_first_name" class="visually-hidden">First Name</label>
-        <input 
-        name="first_name" 
-        id="input_first_name"
-        type="text"
-        value="<%= typeof first_name != 'undefined' ? first_name : '' %>"
-        placeholder="First name"
-        required>
-
-        <label for="input_last_name" class="visually-hidden">Last Name</label>
-        <input 
-        name="last_name" 
-        id="input_last_name"
-        type="text"
-        value="<%= typeof last_name != 'undefined' ? last_name : '' %>"
-        placeholder="Last name"
-        required>
-
-        <label for="input_username" class="visually-hidden">Username</label>
-        <input 
-        name="username" 
-        id="input_username"
-        type="text"
-        value="<%= typeof username != 'undefined' ? username : '' %>"
-        placeholder="Username"
-        required>
-
-        <label for="input_password" class="visually-hidden">Password</label>
-        <input 
-        name="password" 
-        id="input_password"
-        type="password"
-        placeholder="Password"
-        required>
-
-        <input class="btn btn-primary" type="submit" value="Register">
-    </form>
+        <form action="/users/register" method="post">
+            <h1 class="h3 mb-3 font-weight-normal">Register:</h1>
+            <%- include('partials/messages') %> 
     
-    <div class="mt-4">
-        <p>Already registered?</p> 
-        <a href="/users/login" class="btn btn-primary">Log in here</a> 
+            <label for="input_email" class="visually-hidden">Email</label>
+            <input 
+            name="email" 
+            id="input_email"
+            type="email"
+            value="<%= typeof email != 'undefined' ? email : '' %>"
+            placeholder="Email"
+            required
+            autofocus>
+    
+            <label for="input_first_name" class="visually-hidden">First Name</label>
+            <input 
+            name="first_name" 
+            id="input_first_name"
+            type="text"
+            value="<%= typeof first_name != 'undefined' ? first_name : '' %>"
+            placeholder="First name"
+            required>
+    
+            <label for="input_last_name" class="visually-hidden">Last Name</label>
+            <input 
+            name="last_name" 
+            id="input_last_name"
+            type="text"
+            value="<%= typeof last_name != 'undefined' ? last_name : '' %>"
+            placeholder="Last name"
+            required>
+    
+            <label for="input_username" class="visually-hidden">Username</label>
+            <input 
+            name="username" 
+            id="input_username"
+            type="text"
+            value="<%= typeof username != 'undefined' ? username : '' %>"
+            placeholder="Username"
+            required>
+    
+            <label for="input_password" class="visually-hidden">Password</label>
+            <input 
+            name="password" 
+            id="input_password"
+            type="password"
+            placeholder="Password"
+            required>
+            <br>
+    
+            <input class="btn btn-primary" type="submit" value="Register">
+        </form>
+        
+        <div class="mt-4">
+            <p>Already registered?</p> 
+            <a href="/users/login" class="btn btn-primary">Log in here</a> 
+        </div>
     </div>
-</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
+
+</body>
+</html>
+
