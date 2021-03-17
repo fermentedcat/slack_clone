@@ -6,6 +6,8 @@ const Channel = require('../models/channel')
 const bcrypt = require('bcrypt')
 const passport = require('passport')
 const { session } = require('passport')
+const fs = require('fs')
+
 
 router.post('/login', (req, res, next) => {
     console.log("log in");
@@ -24,11 +26,11 @@ router.post('/login', (req, res, next) => {
 })
 
 router.get('/register', (req, res) => {
-    res.render('register')
+    res.render('register', {layout: false})
 })
 
 router.get('/login', (req, res) => {
-    res.render('login')
+    res.render('login', {layout: false})
 })
 
 router.get('/logout', (req, res) => {
@@ -38,12 +40,29 @@ router.get('/logout', (req, res) => {
 })
 
 router.get('/:id', (req, res) => {
+    Channel.findOne({subscribers: req.session.passport.user}).exec((err, doc) => console.log(doc.channelName))
     const session_user = req.session.passport.user
-    User.findById(req.params.id).then((user) => {
+    const user_id = req.params.id
+
+    // Find profile pic
+    let path = ""
+    const dir = `./public/images/profile/${user_id}`
+    try {
+        if(fs.existsSync(dir)) {
+            console.log("YES");
+            path = `/public/images/profile/${user_id}`
+        } else {
+            path = "/public/images/profile/default.png"
+        }
+    } catch (err) {
+        console.error(err);
+        path = "/public/images/profile/default.png"
+    }
+
+    User.findById(user_id).then((user) => {
         let invites = []
         // Find pending invites if user is current session user
-        if (user.pending_invites.length > 0 && session_user == req.params.id) {
-            console.log(user.pending_invites);
+        if (user.pending_invites.length > 0 && session_user == user_id) {
             for (invite of user.pending_invites) {
                 Channel.findById(invite.channel_id).then((channel) => {
                     User.findById(invite.invited_by).then((invited_by) => {
@@ -52,14 +71,28 @@ router.get('/:id', (req, res) => {
                             invited_by: invited_by.username, 
                             _id: invite._id
                         })
-                        res.render('profile', {session_user, user, invites})
                     }).catch(error => console.log(error))
                 }).catch(error => console.log(error))
             }
+            res.render('profile', {session_user, user, invites, img_url: path})
+            console.log(invites);
         } else {
-            res.render('profile', {session_user, user, invites})
+            res.render('profile', {session_user, user, invites, img_url: path})
         }
+
+        /* const channels = (id) => {
+            return Channel.findById(id).exec((err) => console.log(err))
+        }
+        const users = (id) => {
+            return User.findById(id).exec((err) => console.log(err))
+        } */
+
+        
+
+
     }).catch(error => console.log(error))
+    
+
 })
 
 // add invites to user db
@@ -88,7 +121,22 @@ router.put('/invite-to-channel/:id', (req, res) => {
     res.end()
 })
 
-app.post('/upload-profile-pic', (req, res) => {
+// Edit user info
+router.patch('/edit', (req, res) => {
+    const user = req.session.passport.user
+    
+    User.findByIdAndUpdate(
+        user, {$set: req.body}, {new: true, upsert: true}, (error, user) => {
+            if (error) {
+                res.status(400).json({ message: error })
+            }
+            res.status(201).json(user)
+        }
+    )
+})
+
+// Store or replace profile pic in server
+router.post('/upload-profile-pic', (req, res) => {
     const user = req.session.passport.user
 
     try {
@@ -99,7 +147,7 @@ app.post('/upload-profile-pic', (req, res) => {
 
             profile_pic.mv(file_name)
 
-            res.render(`/users/${user}`)
+            res.redirect(`/users/${user}`)
         } else {
             req.flash('error_msg', 'Error uploading file. Please try another picture.')
             res.end(`<h1>No file uploaded!</h1>`)
