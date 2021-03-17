@@ -77,6 +77,7 @@ io.on('connection', socket => {
     let room = ""
     let user = ""
 
+    //// join room
     socket.on('joinRoom', ({ user_id, room_id }) => {
         room = room_id
         user = user_id
@@ -84,14 +85,14 @@ io.on('connection', socket => {
         console.log(`Joined room ${room}`);
     })
 
+    //// message
     socket.on('chat message', message => {
-        console.log("user");
-        console.log(`message received: ${message}`);
         io.to(room).emit('chat message', message)
     })
 
+    //// reply
     socket.on('reply message', message => {
-        console.log(`reply received: ${message}`);
+        console.log(`reply received: ${message.message}`);
         io.to(room).emit('reply message', message)
     })
 
@@ -106,10 +107,13 @@ io.on('connection', socket => {
     // Broadcast to other user that a new user has connected
     socket.broadcast.emit('message', 'A user has joined the chat.')
 
+    socket.on('new channel', channel => {
+        io.emit('new channel', channel)
+    })
 
     socket.on('disconnect', () => {
         // Emit to all users when someone leaves
-        io.emit('message', 'A user has left the chat')
+        io.emit('user disconnect', 'A user has left the chat')
     })
 
 })
