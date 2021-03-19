@@ -1,0 +1,25 @@
+.user_list {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.user_list div.online_status {
+  height: 20px;
+  width: 20px;
+  border-radius: 100%;
+  background-color: #cccccc;
+  margin: 0.2em;
+}
+
+.user_list div.online_status.online {
+  background-color: greenyellow;
+}
+
+.user_list a {
+  text-decoration: none;
+}
+/*# sourceMappingURL=style.css.map */
