@@ -4,16 +4,24 @@ const router = express.Router()
 const Channel = require('../models/channel')
 const User = require('../models/user')
 
-
+const { loginUser, logoutUser, getCurrentUser, getOnlineUsers } = require('../config/onlineStatus.js')
 
 const {ensureAuthenticated} = require('../config/auth.js')
 
+// Get all users, current user channels
 router.get('/dashboard', ensureAuthenticated, (req, res) => {
-    Channel.find({$or: [{private: false}, {subscribers: req.user}]}).then((channels) => {
-        User.find().then((users) => {
-            res.render('dashboard', { user: req.user, channels, users})
+    const online_users = getOnlineUsers()
+    Channel.find(
+        {$or: [
+            {private: false}, 
+            {subscribers: req.user}]}
+    )
+        .then((channels) => {
+            User.find().then((users) => {
+                res.render('dashboard', { current_user: req.user, channels, users, online_users})
+            })
         })
-    })
+
 })
 
 
