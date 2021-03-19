@@ -3,8 +3,8 @@ require('dotenv').config()
 
 const mongoose = require('mongoose')
 mongoose.connect('mongodb://localhost:27017/slack_clone')
-.then(() => { console.log('connected to db')})
-.catch(error => console.log("error"))
+    .then(() => { console.log('connected to db')})
+    .catch(error => console.log("error"))
 
 const path = require('path')
 const http = require('http')
@@ -22,9 +22,17 @@ const flash = require('connect-flash')
 const session = require('express-session')
 const expressEjsLayouts = require('express-ejs-layouts')
 const fileUpload = require('express-fileupload')
+const { loginUser,
+    logoutUser,
+    getCurrentUser,
+    getOnlineUsers
+} = require('./config/onlineStatus.js')
+const { formatMessage } = require('./config/format.js')
+
 
 //// passport
 const passport = require('passport')
+const User = require('./models/user')
 require('./config/passport')(passport)
 // const sharedsession = require('express-socket.io-session')
 
@@ -40,8 +48,13 @@ app.use(fileUpload({ createParentPath: true }))
 //// SESSIONS
 app.use(session({
     secret: 'secret',
-    resave: true,
-    saveUninitialized: true
+    resave: false,
+    saveUninitialized: true,
+    cookie: { 
+        secure: false, 
+        sameSite: true,
+        maxAge: 900000
+    }
 }))
 
 /* io.use(
@@ -75,24 +88,35 @@ app.use('/', require('./routes/index'))
 io.on('connection', socket => {
     console.log("New WS Connection");
     let room = ""
-    let user = ""
+    let current_user = {}
+    
+    socket.on("online", user => {
+        loginUser(user, socket.id)
+        console.log(`socket id upon login: ${socket.id}`);
+        io.emit("online", user)
+    })
 
     //// join room
     socket.on('joinRoom', ({ user_id, room_id }) => {
         room = room_id
-        user = user_id
         socket.join(room)
-        console.log(`Joined room ${room}`);
     })
 
     //// message
     socket.on('chat message', message => {
-        io.to(room).emit('chat message', message)
+        const current_user = getCurrentUser(socket.id)
+        const online = getOnlineUsers()
+        console.log(online);
+        console.log(socket.id);
+        const data = {
+            post_data: formatMessage(message, current_user),
+            current_user: current_user
+        }
+        io.to(room).emit('chat message', data)
     })
 
     //// reply
     socket.on('reply message', message => {
-        console.log(`reply received: ${message.message}`);
         io.to(room).emit('reply message', message)
     })
 
@@ -112,8 +136,12 @@ io.on('connection', socket => {
     })
 
     socket.on('disconnect', () => {
+        console.log("let's log out");
         // Emit to all users when someone leaves
-        io.emit('user disconnect', 'A user has left the chat')
+        const current_user = getCurrentUser(socket.id)
+        const online_users = logoutUser(socket.id)
+        socket.broadcast.emit("offline", current_user)
+        // socket.removeAllListeners()
     })
 
 })
