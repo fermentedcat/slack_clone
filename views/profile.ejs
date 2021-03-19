@@ -3,7 +3,7 @@
     <div class="w-50 h-50" id="profile_pic" data-id="<%= user._id %>">
         <img class="img-fluid" src="<%= img_url %>" alt="<%= user.username %>'s profile picture.">
     </div>
-    <% if (session_user == user._id) {%> 
+    <% if (current_user == user._id) {%> 
         <button id="image_btn" class="btn btn-primary">Upload new image</button>
     <% } %> 
 </div>
@@ -15,17 +15,12 @@
 <h5>Phone number: <%= user.phone %> </h5>
 <h5>Email address: <%= user.email %> </h5>
 
-<% if (session_user == user._id) {%> 
-    <% if (invites.length > 0) {%> 
-        Invites to channels:
-        <% for (invite of invites) { %>
-            <div>
-                <p><%= invite.channel %> </p>
-                <p>Invited by: <%= invite.invited_by %> </p>
-                <button class="btn btn-primary">Accept</button>
-            </div>
-        <% } %>  
-    <% } %> 
+<% if (current_user == user._id) {%> 
+    <h4>Channel invites</h4>
+    <div id="channel_invites">
+
+    </div>
+
     <button 
         class="btn btn-primary" 
         data-bs-toggle="modal" 
