@@ -3,6 +3,11 @@ const router = express.Router()
 
 const User = require('../models/user')
 const Channel = require('../models/channel')
+
+const { loginUser, logoutUser, getCurrentUser, getOnlineUsers } = require('../config/onlineStatus.js')
+const {ensureAuthenticated} = require('../config/auth.js')
+
+
 const bcrypt = require('bcrypt')
 const passport = require('passport')
 const { session } = require('passport')
@@ -29,6 +34,11 @@ router.get('/register', (req, res) => {
     res.render('register', {layout: false})
 })
 
+//// Provide current user
+router.get('/current-user', ensureAuthenticated, (req, res) => {
+    res.status(200).json(req.user)
+})
+
 router.get('/login', (req, res) => {
     res.render('login', {layout: false})
 })
@@ -39,17 +49,17 @@ router.get('/logout', (req, res) => {
     res.redirect('/users/login')
 })
 
+//// Profile page
 router.get('/:id', (req, res) => {
-    Channel.findOne({subscribers: req.session.passport.user}).exec((err, doc) => console.log(doc.channelName))
-    const session_user = req.session.passport.user
+    // Channel.findOne({subscribers: req.user._id}).exec((err, doc) => console.log(doc.channelName))
+    const current_user = req.session.passport.user
     const user_id = req.params.id
 
-    // Find profile pic
+    //// Find profile pic
     let path = ""
     const dir = `./public/images/profile/${user_id}`
     try {
         if(fs.existsSync(dir)) {
-            console.log("YES");
             path = `/public/images/profile/${user_id}`
         } else {
             path = "/public/images/profile/default.png"
@@ -59,66 +69,74 @@ router.get('/:id', (req, res) => {
         path = "/public/images/profile/default.png"
     }
 
-    User.findById(user_id).then((user) => {
-        let invites = []
-        // Find pending invites if user is current session user
-        if (user.pending_invites.length > 0 && session_user == user_id) {
-            for (invite of user.pending_invites) {
-                Channel.findById(invite.channel_id).then((channel) => {
-                    User.findById(invite.invited_by).then((invited_by) => {
-                        invites.push({
-                            channel: channel.name, 
-                            invited_by: invited_by.username, 
-                            _id: invite._id
-                        })
-                    }).catch(error => console.log(error))
-                }).catch(error => console.log(error))
+    //// Get all users
+    User.find({})
+        .exec((error, users) => {
+        if (error) {
+            console.log(error);
+        }
+        // Get profile user
+        User.findById(user_id).exec((error, user) => {
+            if (error) {
+                console.log(error);
             }
-            res.render('profile', {session_user, user, invites, img_url: path})
-            console.log(invites);
-        } else {
-            res.render('profile', {session_user, user, invites, img_url: path})
-        }
-
-        /* const channels = (id) => {
-            return Channel.findById(id).exec((err) => console.log(err))
-        }
-        const users = (id) => {
-            return User.findById(id).exec((err) => console.log(err))
-        } */
-
-        
-
-
-    }).catch(error => console.log(error))
-    
-
+            const online_users = getOnlineUsers();
+            res.render('profile', {current_user, user, img_url: path, online_users, users})
+        })
+    })
 })
 
-// add invites to user db
+//// add invites to user db
 router.put('/invite-to-channel/:id', (req, res) => {
-    const user = req.session.passport.user
+    const user = req.user
     console.log("send out invites");
     const invites = req.body
-    console.log(invites);
-    for (invite of invites) {
-        User.findByIdAndUpdate(
-            invite,
-            { 
-                $push: {
-                    pending_invites: {
-                        invited_by: user, 
-                        channel_id: req.params.id
+    Channel.findById(req.params.id).exec((error, channel) => {
+        if (error) {
+            console.log(error);
+        }
+        for (invite of invites) {
+            User.findByIdAndUpdate(
+                invite,
+                { 
+                    $push: {
+                        pending_invites: {
+                            invited_by: {
+                                _id: user._id,
+                                username: user.username
+                            }, 
+                            channel: {
+                                _id: req.params.id,
+                                name: channel.name
+                            }
+                        }
+                    } 
+                }, 
+                {new: true}, (error, docs) => {
+                    if (error) {
+                        console.log(error)
                     }
-                } 
-            }, 
-            {new: true}, (error, docs) => {
-                if (error) {
-                    console.log(error)
-                }
-            })
-    }
-    res.end()
+                })
+            }
+            res.end()
+        })
+})
+
+// Remove also after accepted
+router.put('/remove-channel-invite/:id', (req, res) => {
+    const current_user = req.user
+    const invite_id = req.params.id
+    User.findByIdAndUpdate(current_user._id, {
+        $pull: {
+            pending_invites: { _id: invite_id} 
+        }
+    }, (error, user) => {
+        if (error) {
+            res.status(500).json(error)
+        }
+        res.status(201).json({message: "Pending invite successfully removed."})
+
+    })
 })
 
 // Edit user info
