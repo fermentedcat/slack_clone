@@ -1,18 +1,12 @@
 <h1>Dashboard</h1>
 <%- include('partials/messages') %> 
 
-<h4>Hello, <%= user.first_name %> </h4>
 
-<div id="unreads">
-    <h4>Online</h4>
-    <ul>
-        <% for (user of users) { %> 
-            <li><span><%= user.is_online === true ? "🟢 " : "⚪️ " %></span>
-                <a href="/users/<%= user._id %>"><%= user.username %></a>
-            </li>
-        <% } %> 
-    </ul>
-</div>
+
+
+<h4>Hello, <%= current_user.first_name %> </h4>
+
+
 
 <div id="unreads">
     <h4>Unreads</h4>
@@ -103,8 +97,7 @@
     </div>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/public/scripts/dashboard.js"></script>
+
 
 <script
 src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
