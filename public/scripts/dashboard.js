@@ -1,6 +1,6 @@
-const socket = io()
 
-socket.on('new channel', channel => {
+
+socket.on('new channel', channel => { //* kolla om den här måste flyttas / göras om
     addNewChannel(channel)
 })
 
@@ -13,7 +13,6 @@ function createChannel() {
                 description: document.getElementById('channel_description').value,
                 private: private
             }
-    console.log(channel);
 
     fetch(`/channels/add`, {
         method: 'POST',
