@@ -4,13 +4,12 @@ const router = express.Router()
 const User = require('../models/user')
 const Channel = require('../models/channel')
 
-const { loginUser, logoutUser, getCurrentUser, getOnlineUsers } = require('../config/onlineStatus.js')
+const { getOnlineUsers } = require('../config/onlineStatus.js')
 const {ensureAuthenticated} = require('../config/auth.js')
 
 
 const bcrypt = require('bcrypt')
 const passport = require('passport')
-const { session } = require('passport')
 const fs = require('fs')
 
 
@@ -50,7 +49,7 @@ router.get('/logout', (req, res) => {
 })
 
 //// Profile page
-router.get('/:id', (req, res) => {
+router.get('/:id', ensureAuthenticated, (req, res) => {
     // Channel.findOne({subscribers: req.user._id}).exec((err, doc) => console.log(doc.channelName))
     const current_user = req.session.passport.user
     const user_id = req.params.id
@@ -70,12 +69,11 @@ router.get('/:id', (req, res) => {
     }
 
     //// Get all users
-    User.find({})
-        .exec((error, users) => {
+    User.find({}).exec((error, users) => {
         if (error) {
             console.log(error);
         }
-        // Get profile user
+        //// Get profile user
         User.findById(user_id).exec((error, user) => {
             if (error) {
                 console.log(error);
@@ -86,10 +84,35 @@ router.get('/:id', (req, res) => {
     })
 })
 
+//// Send online statuses to client
+router.get('/api/online-status', (req, res) => {
+    const online_users = getOnlineUsers()
+    User.find({}).exec((error, users) => {
+        if (error) {
+            res.status(500)
+        }
+        let users_data = []
+        for (let user of users) {
+            const is_current_user = user._id == req.session.passport.user;
+            let user_data = {
+                _id: user._id,
+                username: user.username,
+                online: is_current_user
+            }
+            for (let online of online_users) {
+                if (user._id == online._id) {
+                    user_data.online = true
+                }
+            }
+            users_data.push(user_data)
+        }
+        res.status(200).json(users_data)
+    })
+})
+
 //// add invites to user db
 router.put('/invite-to-channel/:id', (req, res) => {
     const user = req.user
-    console.log("send out invites");
     const invites = req.body
     Channel.findById(req.params.id).exec((error, channel) => {
         if (error) {
@@ -122,21 +145,17 @@ router.put('/invite-to-channel/:id', (req, res) => {
         })
 })
 
-// Remove also after accepted
+//// Remove invite (also after accepted)
 router.put('/remove-channel-invite/:id', (req, res) => {
-    const current_user = req.user
+    const current_user = req.session.passport.user
     const invite_id = req.params.id
-    User.findByIdAndUpdate(current_user._id, {
+    User.findByIdAndUpdate(current_user, {
         $pull: {
             pending_invites: { _id: invite_id} 
         }
-    }, (error, user) => {
-        if (error) {
-            res.status(500).json(error)
-        }
+    }, (result) => {
         res.status(201).json({message: "Pending invite successfully removed."})
-
-    })
+    }).catch(error => res.status(500).json({message: "An error occured removing the invite."}))
 })
 
 // Edit user info
