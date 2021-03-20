@@ -1,11 +1,5 @@
 document.addEventListener('DOMContentLoaded', e => {
-    const profile_pic = document.getElementById('profile_pic')
     const image_btn = document.getElementById('image_btn')
-    const user_id = profile_pic.getAttribute('data-id')
-
-    // Check for uploaded profile pic
-    
-
     image_btn.addEventListener('click', e => {
         const div = document.createElement('div')
         console.log(e);
@@ -20,7 +14,72 @@ document.addEventListener('DOMContentLoaded', e => {
         `
         image_btn.parentNode.appendChild(div)
     })
+
+    if (document.getElementById("channel_invites") != undefined) {
+        fetch(`/users/current-user`, {
+            method: "GET"
+        })
+        .then(res => res.json())
+        .then(user => {
+            displayInvites(user.pending_invites)
+        })
+    }
 })
+
+function displayInvites(pending_invites) {
+    const invite_div = document.getElementById("channel_invites")
+    for (invite of pending_invites) {
+        const div = document.createElement('div')
+        div.innerHTML = `
+            <div>
+                <p>Channel: ${invite.channel.name}</p>
+                <p>Invited by: ${invite.invited_by.username}</p>
+            </div>`
+
+        const accept_button = document.createElement('button')
+        accept_button.innerHTML = "Accept"
+        accept_button.className = "btn btn-primary"
+
+        const decline_button = document.createElement('button')
+        decline_button.innerHTML = "Decline"
+        decline_button.className = "btn btn-danger"
+
+        div.appendChild(accept_button)
+        div.appendChild(decline_button)
+        invite_div.appendChild(div)
+
+        accept_button.addEventListener("click", e => {
+            acceptInvite(invite)
+        })
+
+        decline_button.addEventListener("click", e => {
+            removeInvite(invite)
+        })
+    }
+}
+
+function acceptInvite(invite) {
+    const channel_id = invite.channel._id
+    fetch(`/channels/add-subscriber/${channel_id}`, {
+        method: "PUT"
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log(data.message)
+        removeInvite(invite)
+    })
+}
+
+function removeInvite(invite) {
+    fetch(`/users/remove-channel-invite/${invite._id}`, {
+        method: "PUT"
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log(data.message)
+        location.reload();
+    })
+}
 
 function editUserInfo() {
     const data = {
