@@ -21,18 +21,16 @@ const flash     = require('connect-flash')
 const session   = require('express-session')
 const expressEjsLayouts = require('express-ejs-layouts')
 const fileUpload = require('express-fileupload')
+const passport  = require('passport')
+require('./config/passport')(passport)
 
 const { loginUser,
     logoutUser,
     getCurrentUser,
-    getOnlineUsers
+    getOnlineUsers,
+    getSocketIdById
 } = require('./config/onlineStatus.js')
 const { formatMessage } = require('./config/format.js')
-
-
-//// passport
-const passport = require('passport')
-require('./config/passport')(passport)
 
 
 app.set('view engine', 'ejs')
@@ -60,7 +58,6 @@ app.use(passport.initialize())
 app.use(passport.session())
 
 
-
 //// FLASH
 app.use(flash())
 app.use((req, res, next) => {
@@ -72,12 +69,15 @@ app.use((req, res, next) => {
 
 
 //// routes
-app.use('/users', require('./routes/users'))
-app.use('/channels', require('./routes/channels'))
-app.use('/posts', require('./routes/posts'))
-app.use('/', require('./routes/index'))
+app.use('/users', require('./routes/usersRoute'))
+app.use('/channels', require('./routes/channelsRoute'))
+app.use('/posts', require('./routes/postsRoute'))
+app.use('/direct-messages', require('./routes/directMessagesRoute'))
+app.use('/', require('./routes/indexRoute'))
 
 
+//* SOCKET-IO 
+// flytta till egen fil?
 io.on('connection', socket => {
     console.log("New WS Connection");
     let room = ""
@@ -94,22 +94,31 @@ io.on('connection', socket => {
         socket.join(room)
     })
 
-    //// message
+    //// Disconnect
+    socket.on('disconnect', () => {
+        const current_user = getCurrentUser(socket.id)
+        socket.broadcast.emit("offline", current_user)
+        logoutUser(socket.id)
+        // socket.removeAllListeners() ?
+    })
+
+
+    // ========== Messages =========== //
+    //// new message
     socket.on('chat message', message => { //* döp om till new post
         const current_user = getCurrentUser(socket.id)
         const data = formatMessage(message, current_user)
         io.to(room).emit('chat message', data)
     })
 
-    //// reply
-    socket.on('reply message', reply_data => { //* döp om till new reply
+    //// new reply
+    socket.on('reply message', new_data => { //* döp om till new reply
         const current_user = getCurrentUser(socket.id)
         const data = {
-            reply_data: formatMessage(reply_data.message, current_user),
-            post_id: reply_data.post_id
+            reply_data: formatMessage(new_data.message, current_user),
+            post_id: new_data.post_id
         }
-        console.log(data.reply_data);
-        io.to(room).emit('reply message', data) //* lägg till koden från chat message?
+        io.to(room).emit('reply message', data)
     })
 
     //// Remove deleted post OR reply
@@ -122,17 +131,46 @@ io.on('connection', socket => {
         io.to(room).emit("update msg", data)
     })
 
+
+    //======= channels /dms =======//
     //// New channel created
     socket.on('new channel', channel => {
         io.emit('new channel', channel)
     })
 
-    socket.on('disconnect', () => {
-        const current_user = getCurrentUser(socket.id)
-        socket.broadcast.emit("offline", current_user)
-        logoutUser(socket.id)
-        // socket.removeAllListeners()
+    //// New channel created
+    socket.on('edit channel', channel => {
+        io.to(room).emit('edit channel', channel)
     })
+
+    //// New channel created
+    socket.on('delete channel', channel_id => {
+        io.emit('delete channel', channel_id)
+    })
+
+    //// New channel invite
+    socket.on('new invite', (invitees) => {
+        for (invitee of invitees) {
+            const socket_id = getSocketIdById(invitee._id)
+            //// if invited user is online
+            if (socket_id) {
+                io.to(socket_id).emit('new invite', invitee);
+            }
+        }
+    })
+
+    //// Send new direct message room to user(s)
+    socket.on('new dm', dm => {
+        for (user of dm.subscribers) {
+            const socket_id = getSocketIdById(user._id)
+            //// if invited user is online and is not dm starter
+            if (socket_id && socket_id != socket.id) {
+                console.log(socket_id);
+                io.to(socket_id).emit('new dm', (dm));
+            }
+        }
+    })
+
 })
 
 
