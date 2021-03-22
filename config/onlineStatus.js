@@ -26,6 +26,16 @@ function getCurrentUser(id) {
     return user
 }
 
+//// Get online users current socket id
+function getSocketIdById(id) {
+    const user = online_users.filter(user => user._id == id)[0]
+    if (user) {
+        return user.socket_id
+    } else {
+        return false
+    }
+}
+
 function getOnlineUsers() {
     return online_users;
 }
@@ -34,5 +44,6 @@ module.exports = {
     loginUser,
     logoutUser,
     getCurrentUser,
-    getOnlineUsers
+    getOnlineUsers,
+    getSocketIdById
 }
