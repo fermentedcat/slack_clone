@@ -1,0 +1,26 @@
+<h3>Direct Message</h3>
+<h4>
+    <% for (user of dm.subscribers) { %>
+        <a href="/users/<%= user._id %>" class="btn btn-secondary"><%= user.username %>  </a>
+    <% } %>  
+</h4>
+
+<div id="messages">
+
+</div>
+
+<div>
+    <form id="chat_form">
+        <input 
+            type="text"
+            name="message"
+            id="msg"
+            placeholder="Enter message"
+            autocomplete="off"
+            required
+            >
+        <input type="hidden" id="user" value="<%= user %>">
+
+        <button class="btn btn-primary">Send</button>
+    </form>
+</div>
