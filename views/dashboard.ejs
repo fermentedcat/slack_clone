@@ -1,26 +1,22 @@
-<h1>Dashboard</h1>
-<%- include('partials/messages') %> 
 
 
-
-
-<h4>Hello, <%= current_user.first_name %> </h4>
+<h2 id="user_title" data-id="<%= current_user._id %>">Hello, <%= current_user.first_name %> </h2>
 
 
 
 <div id="unreads">
     <h4>Unreads</h4>
-    <ul>
-        <li><a href="">Gym & Tonic</a></li>
-        <li><a href="">Ådi Ryberg</a></li>
-    </ul>
 </div>
 
 <div>
     <h4>Channels</h4>
     <ul id="channels">
         <% for (channel of channels) { %> 
-            <li><a href="/channels/<%= channel._id %>"><%= channel.name %></a></li>
+            <li id="channel_li_<%= channel._id %>">
+                <a href="/channels/<%= channel._id %>" class="btn btn-secondary">
+                    <%= channel.name %>
+                </a>
+            </li>
         <% } %> 
     </ul>
     <button 
@@ -31,14 +27,66 @@
     </button>
 </div>
 
-<div id="direct_messages">
+<div>
     <h4>Direct messages</h4>
-    <ul>
-        <li><a href="">Moa Thunberg</a></li>
-        <li><a href="">Ådi Ryberg</a></li>
+    <ul id="direct_messages">
+        <% for (dm of dms) { %> 
+            <li>   
+                <a href="/direct-messages/<%= dm._id %>" class="btn btn-secondary">
+                    <% for (user of dm.subscribers) { %>
+                        <% if (user.username != current_user.username) { %>
+                            <span class="dm_username">
+                                <%= user.username %>
+                            </span>
+                        <% } %>  
+                    <% } %>    
+                </a>
+            </li>
+        <% } %> 
     </ul>
-    <a href="">Add teammates</a>
+    <button 
+        class="btn btn-primary" 
+        data-bs-toggle="modal" 
+        data-bs-target="#start_dm_modal">
+        New DM
+    </button>
 </div>
+
+<div class="modal" id="start_dm_modal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">Start new direct message</h3>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <h5>Choose your team mates for the chat!</h5>
+            <form action="/channels/add" method="post">
+                <ul>
+                    <% for (user of users) {%> 
+                        <% if (user._id != current_user._id) { %> 
+                            <li>
+                                <input 
+                                    name="dm_user" 
+                                    type="checkbox" 
+                                    value="<%= user._id %>"
+                                >
+                                <label for="<%= user._id %>">
+                                    <%= user.username %>
+                                </label>
+                            </li>
+                        <% } %> 
+                    <% } %>
+                </ul>
+            </form>
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="startDirectMessage()">Start DM</button>
+            </div>
+        </div>
+    </div>
+  </div>
 
 
 
