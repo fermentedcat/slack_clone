@@ -1,4 +1,4 @@
-.user_list {
+#user_list div {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -7,7 +7,7 @@
           align-items: center;
 }
 
-.user_list div.online_status {
+#user_list div .online_status {
   height: 20px;
   width: 20px;
   border-radius: 100%;
@@ -15,11 +15,68 @@
   margin: 0.2em;
 }
 
-.user_list div.online_status.online {
+#user_list div .online_status.online {
   background-color: greenyellow;
 }
 
-.user_list a {
+#user_list div a {
   text-decoration: none;
+}
+
+#messages div.post {
+  background-color: #f3f3f3;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 5px;
+}
+
+#messages div.post div.replies div {
+  background-color: white;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 3px;
+}
+
+#messages div.post div.replies div p, #messages div.post div.replies div h6 {
+  margin: 0;
+}
+
+#messages div.post div.replies div div {
+  padding: 0;
+}
+
+#messages div.post div.replies div div button {
+  margin: 3px;
+}
+
+.channel_invites_container {
+  background-color: #f3f3f3;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.dm_username {
+  padding: 5px;
+}
+
+ul {
+  padding: 0;
+  width: -webkit-max-content;
+  width: -moz-max-content;
+  width: max-content;
+  min-width: 300px;
+}
+
+ul li {
+  width: 100%;
+  list-style-type: none;
+  margin: 4px;
+}
+
+ul li a.btn-secondary {
+  width: 100%;
+  background-color: #f3f3f3;
+  border-color: #f3f3f3;
+  color: black;
 }
 /*# sourceMappingURL=style.css.map */
