@@ -3,14 +3,27 @@ const router = express.Router()
 
 const Channel = require('../models/channel')
 const User = require('../models/user')
+const Invite = require('../models/invite')
 
 const { getCurrentUser, getOnlineUsers } = require('../config/onlineStatus.js')
-const { formatDate } = require('../config/format.js')
+const { getPostData } = require('../config/posts.js')
 
 const {ensureAuthenticated} = require('../config/auth.js')
 
+////=== CHANNELS ==== ////
 
-// Add new channel
+// Add channel
+// Edit channel
+// Delete channel
+
+// Add new subscriber
+// Remove subscriber
+
+// Get channel data with formatted messages
+// Go to channel page
+
+
+//// Add new channel
 router.post('/add', async (req, res) => {
     const name = req.body.name
     const description = req.body.description
@@ -33,73 +46,37 @@ router.post('/add', async (req, res) => {
     }
 })
 
-
-//* move to separate file?
-async function getPostData(channel) {
-    try {
-        let post_data = []
-        for (let post of channel.posts) {
-            try {
-                const username = await getUserName(post.author)
-                const replies = await getReplyData(post.replies)
-                formatDate(post.published)
-                post_data.push({
-                    _id: post.id,
-                    author: post.author,
-                    username: username,
-                    published: post.published,
-                    date: formatDate(post.published).date,
-                    time: formatDate(post.published).time,
-                    content: post.content,
-                    replies: replies
-                })
-            } catch (error) {
-                console.log(error);
+//// Edit channel info
+router.patch('/edit/:id', (req, res) => {
+    const channel_id = req.params.id
+    
+    Channel.findByIdAndUpdate(
+        channel_id, {$set: req.body}, {new: true, upsert: true}, (error, channel) => {
+            if (error) {
+                res.status(400).json({ message: error })
             }
+            res.status(201).json(channel)
         }
-        return post_data
-    } catch (error) {
-        return post_data;
-    }
-}
-//* move to separate file?
-async function getReplyData(replies) {
-    try {
-        let reply_data = []
-        for (let reply of replies) {
-            try {
-                const username = await getUserName(reply.author)
-                reply_data.push({
-                    _id: reply.id,
-                    author: reply.author,
-                    username: username,
-                    published: reply.published,
-                    date: formatDate(reply.published).date,
-                    time: formatDate(reply.published).time,
-                    content: reply.content
-                })
-            } catch (error) {
-                console.log(error);
-            }
-        }
-        return reply_data
-    } catch (error) {
-        return reply_data;
-    }
-}
-//* move to separate file?
-async function getUserName(id) {
-    try {
-        const user = await User.findById(id);
-        if (!user) {
-            console.log("user id not found");
-        }
-        return user.username
-    } catch (error) {
-        console.log(error)
-    }
-}
+    )
+})
 
+//// Delete channel and any docs of invites connected to it
+router.delete('/delete/:id', ensureAuthenticated, (req, res) => {
+    Channel.findByIdAndDelete(req.params.id, (error, channel) => {
+        if (error) {
+            res.status(501)
+        }
+        console.log(channel);
+        Invite.deleteMany({channel: req.params.id}, (error, result) => {
+            if (error) {
+                res.status(501).json(error)
+            }
+            res.status(204).json(result)
+        })
+        //* skicka flashmeddelande?
+        res.status(204)
+    })
+})
 
 //// Add new subscriber to channel
 router.put('/add-subscriber/:id', (req, res) => {
@@ -131,6 +108,25 @@ router.put('/remove-subscriber/:id', (req, res) => {
     })
 })
 
+//// Return current channel and current user to client side js
+router.get('/api/:id', (req, res) => {
+    const current_user = req.user
+
+    Channel.findById(req.params.id)
+        .populate('posts.author')
+        .populate('posts.replies.author')
+        .then( async (channel) => {
+            try {
+                const post_data = await getPostData(channel)
+                res.status(200).json({channel, current_user, post_data})
+            } catch (error) {
+                res.status(500).json({message: "An error occured"})
+            }
+    }).catch((error) => {
+        res.status(500).json({message: "An error occured"})
+    })
+})
+
 //// Go to channel
 router.get('/:id', ensureAuthenticated, (req, res) => {
     const online_users = getOnlineUsers()
@@ -144,13 +140,15 @@ router.get('/:id', ensureAuthenticated, (req, res) => {
         User.find().then((users) => {
             // Filter out already subscribing users
             const non_subscribers = users.filter(user => !channel.subscribers.includes(user._id))
+            console.log(current_user._id);
+            console.log(channel.creator);
             res.render('channel', {
-                channel, 
-                user: req.session.passport.user, 
+                channel, //* används i ejs
+                current_user_id: req.session.passport.user, //* används i ejs
                 non_subscribers, 
                 users, 
                 online_users, 
-                current_user
+                current_user 
             })
         })
         .catch(error => {
@@ -162,22 +160,6 @@ router.get('/:id', ensureAuthenticated, (req, res) => {
         res.redirect('/dashboard')
         console.log(error)}
     )
-})
-
-//// Return current channel and current user to client side js
-router.get('/api/:id', (req, res) => {
-    const current_user = req.user
-
-    Channel.findById(req.params.id).then( async (channel) => {
-        try {
-            const post_data = await getPostData(channel)
-            res.status(200).json({channel, current_user, post_data})
-        } catch (error) {
-            res.status(500).json({message: "An error occured"})
-        }
-    }).catch((error) => {
-        res.status(500).json({message: "An error occured"})
-    })
 })
 
 
