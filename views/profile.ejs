@@ -3,24 +3,29 @@
     <div class="w-50 h-50" id="profile_pic" data-id="<%= user._id %>">
         <img class="img-fluid" src="<%= img_url %>" alt="<%= user.username %>'s profile picture.">
     </div>
-    <% if (current_user == user._id) {%> 
+    <%- include('partials/messages') %> 
+    <% if (current_user_id == user._id) {%> 
         <button id="image_btn" class="btn btn-primary">Upload new image</button>
     <% } %> 
 </div>
         
-<h5>Title: <%= user.title %> </h5>
-<h5>Registered: <%= user.date_registered %> </h5>
+<% if (user.title) { %>
+    <h5>Title: <%= user.title %> </h5>
+<% } %> 
 <h5>Display name: <%= user.username %></h5>
-<h5>Last online: <%= user.last_online %> </h5>
-<h5>Phone number: <%= user.phone %> </h5>
+<% if (user.phone) { %>
+    <h5>Phone number: <%= user.phone %> </h5>
+<% } %> 
 <h5>Email address: <%= user.email %> </h5>
+<h5>Registered: <%= user.registered.date %> </h5>
 
-<% if (current_user == user._id) {%> 
-    <h4>Channel invites</h4>
-    <div id="channel_invites">
-
+<% if (current_user_id == user._id) {%>
+    <div class="channel_invites_container">
+        <h4>Channel invites</h4>
+            <div id="channel_invites">
+                
+            </div>
     </div>
-
     <button 
         class="btn btn-primary" 
         data-bs-toggle="modal" 
@@ -28,6 +33,7 @@
         Edit profile
     </button>
 <% } %> 
+
 
 
 
@@ -116,6 +122,3 @@
         </div>
     </div>
   </div>
-
-
-<script src="/public/scripts/profile.js"></script>
