@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', e => {
+
+
+function fetchUserData() {
     const image_btn = document.getElementById('image_btn')
     image_btn.addEventListener('click', e => {
         const div = document.createElement('div')
@@ -21,44 +23,47 @@ document.addEventListener('DOMContentLoaded', e => {
         })
         .then(res => res.json())
         .then(user => {
-            displayInvites(user.pending_invites)
-        })
-    }
-})
-
-function displayInvites(pending_invites) {
-    const invite_div = document.getElementById("channel_invites")
-    for (invite of pending_invites) {
-        const div = document.createElement('div')
-        div.innerHTML = `
-            <div>
-                <p>Channel: ${invite.channel.name}</p>
-                <p>Invited by: ${invite.invited_by.username}</p>
-            </div>`
-
-        const accept_button = document.createElement('button')
-        accept_button.innerHTML = "Accept"
-        accept_button.className = "btn btn-primary"
-
-        const decline_button = document.createElement('button')
-        decline_button.innerHTML = "Decline"
-        decline_button.className = "btn btn-danger"
-
-        div.appendChild(accept_button)
-        div.appendChild(decline_button)
-        invite_div.appendChild(div)
-
-        accept_button.addEventListener("click", e => {
-            acceptInvite(invite)
-        })
-
-        decline_button.addEventListener("click", e => {
-            removeInvite(invite)
+            for (invite of user.pending_invites) {
+                displayInvites(invite)
+            }
         })
     }
 }
 
+
+function displayInvites(invite) {
+    const invite_div = document.getElementById("channel_invites")
+    console.log(invite_div);
+    const div = document.createElement('div')
+    div.innerHTML = `
+        <div>
+            <p>Channel: ${invite.channel.name}</p>
+            <p>Invited by: ${invite.invited_by.username}</p>
+        </div>`
+
+    const accept_button = document.createElement('button')
+    accept_button.innerHTML = "Accept"
+    accept_button.className = "btn btn-primary"
+
+    const decline_button = document.createElement('button')
+    decline_button.innerHTML = "Decline"
+    decline_button.className = "btn btn-danger"
+
+    div.appendChild(accept_button)
+    div.appendChild(decline_button)
+    invite_div.appendChild(div)
+
+    accept_button.addEventListener("click", e => {
+        acceptInvite(invite)
+    })
+
+    decline_button.addEventListener("click", e => {
+        removeInvite(invite)
+    })
+}
+
 function acceptInvite(invite) {
+    console.log("Accept");
     const channel_id = invite.channel._id
     fetch(`/channels/add-subscriber/${channel_id}`, {
         method: "PUT"
@@ -72,12 +77,11 @@ function acceptInvite(invite) {
 
 function removeInvite(invite) {
     fetch(`/users/remove-channel-invite/${invite._id}`, {
-        method: "PUT"
+        method: "DELETE"
     })
-    .then(res => res.json())
-    .then(data => {
-        console.log(data.message)
-        location.reload();
+    .then(res => {})
+    .then(() => {
+        location.reload()
     })
 }
 
