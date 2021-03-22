@@ -1,16 +1,16 @@
+//// used by socket for new messages
 function formatMessage(message, current_user) {
     console.log("message:");
-    console.log(message);
     const date = new Date()
+    console.log(date);
     const message_data = {
         _id: message._id,
-        author: current_user._id,
-        username: current_user.username,
-        published: message.published,
+        author: message.author,
         date: formatDate(date).date,
         time: formatDate(date).time,
         content: message.content
     }
+    console.log(message_data);
     return message_data
 }
 
