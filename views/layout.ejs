@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="module" src="/public/scripts/chat.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
     <link rel="stylesheet" href="/public/styles/style.css">
     <title>s1ack</title>
@@ -14,17 +13,35 @@
         <h1 class="text-center">s1ack</h1>
         <nav>
             <ul>
-                <a href="/dashboard"><li>Dashboard</li></a>
-                <a href="/users/logout"><li>Logout</li></a>
+                <li>
+                    <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+                </li>
+                <li>
+                    <a href="/users/logout" class="btn btn-secondary">Logout</a>
+                </li>
+                <% if (current_user.role == 'Admin') { %> 
+                    <li>
+                        <a href="/admin" class="btn btn-secondary">Admin</a>
+                    </li>
+                <% } else { %> 
+                    <li>
+                        <a href="/users/<%= current_user._id %>" class="btn btn-secondary">Profile</a>
+                    </li>
+                <% } %> 
             </ul>
         </nav>
     </header>
+    <%- include('partials/messages') %> 
     
     <%- include('blocks/sidebar') %> 
 
     <%- body %> 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/public/scripts/profile.js"></script>
     <script src="/public/scripts/socket.js"></script>
+    <script src="/public/scripts/channel.js"></script>
+    <script src="/public/scripts/dm.js"></script>
+    <script src="/public/scripts/messages.js"></script>
     <script src="/public/scripts/dashboard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js" integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0" crossorigin="anonymous"></script>
 
