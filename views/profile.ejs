@@ -12,7 +12,7 @@
 <% if (user.title) { %>
     <h5>Title: <%= user.title %> </h5>
 <% } %> 
-<h5>Display name: <%= user.username %></h5>
+<h5>Username: <%= user.username %></h5>
 <% if (user.phone) { %>
     <h5>Phone number: <%= user.phone %> </h5>
 <% } %> 
@@ -68,12 +68,13 @@
                     />
                 </div>
                 <div class="mb-3">
-                    <label for="username" class="form-label">Display name</label>
+                    <label for="username" class="form-label">Username</label>
                     <input
                         type="text"
                         class="form-control"
                         id="username"
                         placeholder="Display name"
+                        aria-describedby="usernameHelp"
                         value="<%= user.username %>"
                         required
                     />

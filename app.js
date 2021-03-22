@@ -73,6 +73,7 @@ app.use('/users', require('./routes/usersRoute'))
 app.use('/channels', require('./routes/channelsRoute'))
 app.use('/posts', require('./routes/postsRoute'))
 app.use('/direct-messages', require('./routes/directMessagesRoute'))
+app.use('/api', require('./routes/apiRoute'))
 app.use('/', require('./routes/indexRoute'))
 
 

@@ -86,24 +86,44 @@ function removeInvite(invite) {
 }
 
 function editUserInfo() {
+    const username_input = document.getElementById('username')
     const data = {
         first_name: document.getElementById('first_name').value,
         last_name: document.getElementById('last_name').value,
-        username: document.getElementById('username').value,
+        username: username_input.value,
         phone: document.getElementById('phone').value,
         fav_pizza: document.getElementById('fav_pizza').value,
         occupation: document.getElementById('occupation').value,
     }
-    fetch(`/users/edit`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+    //// Check if username is available
+    fetch(`/api/users/username/${data.username}`, {
+        method: "GET",
     })
     .then(res => res.json())
-    .then(user => {
-        console.log(user);
-        window.location.href = `/users/${user._id}`
+    .then(found_user => {
+        if(found_user) {
+            //// Display error
+            console.log(found_user);
+            username_input.classList.add("is-invalid")
+            username_input.focus()
+            const div = document.createElement('div')
+            div.id = "usernameHelp"
+            div.className = "form-text text-danger"
+            div.innerHTML = "Username is already taken"
+            username_input.after(div)
+        } else {
+            //// Update user
+            fetch(`/users/edit`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(user => {
+                window.location.href = `/users/${user._id}`
+            })
+        }
     })
 }

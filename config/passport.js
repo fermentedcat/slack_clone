@@ -8,7 +8,8 @@ module.exports = function (passport) {
             usernameField: 'email'
         },
         function (username, password, done) {
-            User.findOne({ email: username }, function (error, user) {
+            //// check for matches on username or email
+            User.findOne({$or:[{ email: username }, {username: username}]}, function (error, user) {
                 if (error) {
                     return done(error)
                 }

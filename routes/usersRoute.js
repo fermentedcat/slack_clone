@@ -258,40 +258,46 @@ router.post('/register', (req, res) => {
         // check that email is not already registered
         if (data != null) {
             errors.push({ message: 'Email is already registered.'})
-        }
-        // check fields are filled in correctly
-        if (!first_name || !last_name || !email || !password) {
-            errors.push({ message: 'Please fill out all fields.'})
-        }
-        if (password.length < 6) {
-            errors.push({ message: 'Password needs to be at least 6 characters long.'})
-        }
-        
-        //render register ejs again with current values except password, to show errors
-        if (errors.length > 0) {
-            res.render('register', {
-                errors, first_name, last_name, email, username
-            })
-        } else {
-            const new_user = new User({
-                first_name, last_name, email, username, password
-            })
+        }   
+        User.findOne({ username: username }).then(data => {
+            // check that username is not already registered
+            if (data != null) {
+                errors.push({ message: 'Username is already taken. Please try another one.'})
+            }
+            // check fields are filled in correctly
+            if (!first_name || !last_name || !email || !password) {
+                errors.push({ message: 'Please fill out all fields.'})
+            }
+            if (password.length < 6) {
+                errors.push({ message: 'Password needs to be at least 6 characters long.'})
+            }
             
-            bcrypt.hash(password, 10, function (error, hash) {
-                if (error) {
-                    console.log(error)
-                }
-                new_user.password = hash
-                
-                new_user
-                .save()
-                .then(() => {
-                    req.flash('success_msg', 'Registration succesful!')
-                    res.redirect('/users/login')
+            //render register ejs again with current values except password, to show errors
+            if (errors.length > 0) {
+                res.render('register', {
+                    errors, first_name, last_name, email, username, layout: false
                 })
-                .catch(error => console.log(error))
-            })
-        }
+            } else {
+                const new_user = new User({
+                    first_name, last_name, email, username, password
+                })
+                
+                bcrypt.hash(password, 10, function (error, hash) {
+                    if (error) {
+                        console.log(error)
+                    }
+                    new_user.password = hash
+                    
+                    new_user
+                    .save()
+                    .then(() => {
+                        req.flash('success_msg', 'Registration succesful!')
+                        res.redirect('/users/login')
+                    })
+                    .catch(error => console.log(error))
+                })
+            }
+        })
     })
 })
 
