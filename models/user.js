@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+
 const UserSchema = new Schema({
     first_name: {
         type: String,
@@ -28,10 +29,6 @@ const UserSchema = new Schema({
         enum: ['User', 'Admin'], 
         default: 'User'
     },
-    is_online: {
-        type: Boolean,
-        default: false
-    },
     phone: {
         type: String,
         required: false
@@ -41,14 +38,8 @@ const UserSchema = new Schema({
         default: Date.now()
     },
     pending_invites: [{
-        invited_by: {
-            type: Schema.Types.ObjectId, 
-            ref: 'User'
-        },
-        channel_id: {
-            type: Schema.Types.ObjectId, 
-            ref: 'Channel'
-        }
+        type: Schema.Types.ObjectId,
+        ref: 'Invite'
     }],
     occupation: {
         type: String,
