@@ -10,20 +10,18 @@ const { getPostData } = require('../config/posts.js')
 
 const {ensureAuthenticated} = require('../config/auth.js')
 
-////=== CHANNELS ==== ////
+////==== CHANNEL ROUTES ==== ////
 
-// Add channel
-// Edit channel
-// Delete channel
-
-// Add new subscriber
-// Remove subscriber
-
-// Get channel data with formatted messages
-// Go to channel page
+// 1. Add channel
+// 2. Edit channel
+// 3. Delete channel
+// 4. Add new subscriber
+// 5. Remove subscriber
+// 6. Send populated channel data
+// 7. Render channel page
 
 
-//// Add new channel
+//// 1. Add new channel
 router.post('/add', async (req, res) => {
     const name = req.body.name
     const description = req.body.description
@@ -46,39 +44,36 @@ router.post('/add', async (req, res) => {
     }
 })
 
-//// Edit channel info
+//// 2. Edit channel info
 router.patch('/edit/:id', (req, res) => {
     const channel_id = req.params.id
     
     Channel.findByIdAndUpdate(
         channel_id, {$set: req.body}, {new: true, upsert: true}, (error, channel) => {
-            if (error) {
-                res.status(400).json({ message: error })
-            }
+            if (error) res.status(400).json({ message: error })
             res.status(201).json(channel)
         }
     )
 })
 
-//// Delete channel and any docs of invites connected to it
+//// 3. Delete channel and any docs of invites connected to it
 router.delete('/delete/:id', ensureAuthenticated, (req, res) => {
-    Channel.findByIdAndDelete(req.params.id, (error, channel) => {
-        if (error) {
-            res.status(501)
-        }
-        console.log(channel);
-        Invite.deleteMany({channel: req.params.id}, (error, result) => {
+    Channel.findByIdAndDelete(req.params.id, async (error, channel) => {
+        if (error) res.status(501)
+
+        const invites = await Invite.find({channel: req.params.id});
+        await Invite.deleteMany({channel: req.params.id}, (error, data) => {
             if (error) {
                 res.status(501).json(error)
             }
-            res.status(204).json(result)
+
+            res.status(200).json(invites)
         })
         //* skicka flashmeddelande?
-        res.status(204)
     })
 })
 
-//// Add new subscriber to channel
+//// 4. Add new subscriber to channel
 router.put('/add-subscriber/:id', (req, res) => {
     const current_user = req.user
     const channel_id = req.params.id
@@ -93,7 +88,7 @@ router.put('/add-subscriber/:id', (req, res) => {
     })
 })
 
-//// Remove subscriber from channel
+//// 5. Remove subscriber from channel
 router.put('/remove-subscriber/:id', (req, res) => {
     const current_user = req.user
     const channel_id = req.params.id
@@ -101,15 +96,13 @@ router.put('/remove-subscriber/:id', (req, res) => {
     Channel.findByIdAndUpdate(channel_id, {
         $pull: {subscribers: current_user._id}
     }, (error, result) => {
-        if (error) {
-            res.status(500).json(error)
-        }
+        if (error) res.status(500).json(error)
         res.status(201).json({message: "Subscriber removed from channel"})
     })
 })
 
-//// Return current channel and current user to client side js
-router.get('/api/:id', (req, res) => {
+//// 6. Send populated Channel to client-side js
+router.get('/populated/:id', (req, res) => {
     const current_user = req.user
 
     Channel.findById(req.params.id)
@@ -127,7 +120,7 @@ router.get('/api/:id', (req, res) => {
     })
 })
 
-//// Go to channel
+//// 7. Render channel
 router.get('/:id', ensureAuthenticated, (req, res) => {
     const online_users = getOnlineUsers()
     const current_user = req.user
@@ -137,18 +130,43 @@ router.get('/:id', ensureAuthenticated, (req, res) => {
         if (channel.private && !is_subscriber) {
             res.redirect('/dashboard')
         }
-        User.find().then((users) => {
-            // Filter out already subscribing users
-            const non_subscribers = users.filter(user => !channel.subscribers.includes(user._id))
-            console.log(current_user._id);
-            console.log(channel.creator);
+        User.find({})
+            .populate({ 
+                path: 'pending_invites',
+                ref: 'Invite',
+                populate: [{
+                    path: 'invited_by',
+                    ref: 'User'
+                }, {
+                    path: 'channel',
+                    ref: 'Channel'
+                }]
+            })
+            .then((users) => {
+            //// Filter out already subscribing or invited users
+            const non_invited = users.filter(user => {
+                if (channel.subscribers.includes(user._id)) {
+                    return false
+                } else if (user.pending_invites.length > 0) {
+                    for (let invite of user.pending_invites) {
+                        if (invite.channel._id != channel._id) {
+                            return false
+                        } else {
+                            return true
+                        }
+                    } 
+                } else {
+                    return true
+                }
+            })
             res.render('channel', {
                 channel, //* används i ejs
                 current_user_id: req.session.passport.user, //* används i ejs
-                non_subscribers, 
+                non_invited,
                 users, 
                 online_users, 
                 current_user 
+                //* kolla om allt används
             })
         })
         .catch(error => {
