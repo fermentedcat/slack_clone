@@ -16,43 +16,40 @@ const { formatDate } = require('../config/format')
 
 ////=== USERS ==== ////
 
-// Register
-// Login
-// Logout
-// Login post
+// 1. Register
+// 2. Login
+// 3. Logout
 
-// Get current user (populated)
-// All users with online statuses
+// 4. Send current user (populated)
+// 5. Check existing username
+// 6. Send all online statuses
 
-// Add invites
-// Remove invite
-// Remove invites by channel_id //! fix
-// Edit user
-// Upload profile pic
+// 7. Add invites
+// 8. Remove invite
+// 9.  Remove invites by channel_id //! fix
 
-// Login post
-// Register post
+// 10. Edit user
+// 11. Upload profile pic
+// 12. post. Login
+// 13. post. Register 
+// 14. Profile page
 
-// Profile page
-
-
-//// Register
+//// 1. Register
 router.get('/register', (req, res) => {
     res.render('register', {layout: false})
 })
-//// Login
+//// 2. Login
 router.get('/login', (req, res) => {
     res.render('login', {layout: false})
 })
-//// Logout
+//// 3. Logout
 router.get('/logout', (req, res) => {
     req.logout()
     req.flash('success_msg', 'Successfully logged out.')
     res.redirect('/users/login')
 })
 
-
-//// Provide populated current user (api provider)
+//// 4. Send populated current user to client-side js
 router.get('/current-user', ensureAuthenticated, (req, res) => {
     User.findById(req.user._id)
         .populate({ 
@@ -67,14 +64,28 @@ router.get('/current-user', ensureAuthenticated, (req, res) => {
             }]
         })
         .exec((error, user) => {
-            if (error) {
-                res.status(200).json(req.user)
-            }
+            if (error) res.status(200).json(req.user)
             res.status(200).json(user)
         })
 })
 
-//// Send online statuses to client
+//// 5. Find other users with this username
+router.get('/username/:username', (req, res) => {
+
+    User.findOne({
+        $and: [{
+            username: req.params.username
+        }, {
+            _id: {
+                $ne: req.session.passport.user
+            }}]
+        }, (error, user) => {
+            if (error) res.status(500)
+            res.status(200).json(user)
+        })
+})
+
+//// 6. Send online statuses to client
 router.get('/api/online-status', (req, res) => {
     const online_users = getOnlineUsers()
     User.find({}).exec((error, users) => {
@@ -105,7 +116,7 @@ router.get('/api/online-status', (req, res) => {
     })
 })
 
-//// Add invites to user db
+//// 7. Add invites to user db
 router.put('/invite-to-channel/:id', async (req, res) => {
     const current_user = req.user
     const invitees = req.body
@@ -124,7 +135,7 @@ router.put('/invite-to-channel/:id', async (req, res) => {
                     invitee,
                     { 
                         $push: {
-                            pending_invites: [invite]
+                            pending_invites: [invite._id]
                         } 
                     }, 
                     {new: true})
@@ -140,23 +151,19 @@ router.put('/invite-to-channel/:id', async (req, res) => {
                         }]
                     })
                     .exec()
-                populated_invitees.push(user)
-            
+                populated_invitees.push(user)            
         } 
-
-        console.log("populated_invitees");
-        console.log(populated_invitees[0].channel);
         res.status(201).json(populated_invitees)
         } catch (error) {
             console.log(error);
+            return handleError
         }
 })
 
-//// Remove invite (also after accepted)
+//// 8. Remove invite (also after accepted)
 router.delete('/remove-channel-invite/:id', async(req, res) => {
     const current_user = req.session.passport.user
     const invite_id = req.params.id
-    console.log("here");
 
     User.findByIdAndUpdate(current_user, {
         $pull: {
@@ -164,28 +171,33 @@ router.delete('/remove-channel-invite/:id', async(req, res) => {
         }
     }, () => {
         Invite.findByIdAndDelete(invite_id, (error, result) => {
-            if (error) {
-                res.status(501).json(error)
-            }
+            if (error) res.status(501).json(error)
             res.status(204).json(result)
         })
     }).catch(error => res.status(500).json(error))
 })
 
-//// Remove one or more invites (after channel delete)
-router.put('/remove-pending-invites', (req, res) => {
-    const channel_id = req.body
-    console.log(channel_id);
-    User.updateMany({'pending_invites.$.channel': channel_id}, {
-        $pop: {
-            pending_invites: -1 //* hitta rätt query...
+//// 9. Remove one or more invites (after channel delete)
+router.put('/remove-pending-invites', async (req, res) => {
+    const invites = req.body
+    try {
+        for (invite of invites) {
+            await User.updateOne({
+                pending_invites: invite._id
+            }, {
+                $pull: {
+                    pending_invites: invite._id
+                }}, (error) => {
+                    console.log(error);
+                })
         }
-    }, (result) => {
-        res.status(201).json({message: "Pending invite successfully removed."})
-    }).catch(error => res.status(500).json({message: "An error occured removing the invite."}))
+        res.status(200).json({message: "Pending invites successfully removed."})
+    } catch (error) {
+        res.status(500)
+    }
 })
 
-//// Edit user info
+//// 10. Edit user info
 router.patch('/edit', (req, res) => {
     const user = req.session.passport.user
     
@@ -199,7 +211,7 @@ router.patch('/edit', (req, res) => {
     )
 })
 
-//// Store or replace profile pic in server
+//// 11. Store or replace profile pic in server
 router.post('/upload-profile-pic', (req, res) => {
     const user = req.session.passport.user
 
@@ -225,9 +237,8 @@ router.post('/upload-profile-pic', (req, res) => {
     }
 })
 
-//// Login
+//// 12. Login
 router.post('/login', (req, res, next) => {
-    console.log("log in");
     passport.authenticate('local', {
         successRedirect: '/dashboard',
         failureRedirect: '/users/login',
@@ -242,7 +253,7 @@ router.post('/login', (req, res, next) => {
     })(req, res, next)
 })
 
-//// Register new user
+//// 13. Register new user
 router.post('/register', (req, res) => {
     let errors = []
 
@@ -301,9 +312,8 @@ router.post('/register', (req, res) => {
     })
 })
 
-//// Profile page
+//// 14. Profile page
 router.get('/:id', ensureAuthenticated, (req, res) => {
-    // Channel.findOne({subscribers: req.user._id}).exec((err, doc) => console.log(doc.channelName))
     const current_user = req.user
     const current_user_id = req.session.passport.user
     const user_id = req.params.id
