@@ -3,9 +3,10 @@
     <h5 id="channel_desc"><%= channel.description %></h5>
 <% } %>  
 
-<div id="messages">
 
+<div id="messages">
 </div>
+
 
 <div>
     <form id="chat_form">
@@ -23,6 +24,7 @@
     </form>
 </div>
 
+
 <% if (channel.private) { %> 
     <button 
         id="invite_btn" 
@@ -39,6 +41,8 @@
             data-bs-target="#edit_channel_modal">Edit channel</button>
 <% } %> 
 
+
+
 <div class="modal" id="invite_modal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -49,7 +53,7 @@
         <div class="modal-body">
             <form action="/channels/add" method="post">
                 <ul>
-                    <% for (user of non_subscribers) {%> 
+                    <% for (user of non_invited) {%> 
                         <li>
                             <input 
                                 name="non_subscriber" 
@@ -71,9 +75,9 @@
             </div>
         </div>
     </div>
-  </div>
+</div>
 
-  <div class="modal" id="edit_channel_modal" tabindex="-1">
+<div class="modal" id="edit_channel_modal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -134,7 +138,7 @@
             </div>
         </div>
     </div>
-  </div>
+</div>
 
 
 <script
@@ -143,5 +147,5 @@ integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOn
 crossorigin="anonymous"
 ></script>
 
-<script src="/socket.io/socket.io.js"></script>
+
 
