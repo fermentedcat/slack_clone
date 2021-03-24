@@ -1,26 +1,24 @@
 function fetchChannelData() {
     const channel_id = getChatId()
-
-        //// join user to current channel room
-        socket.emit('joinRoom', channel_id)
-
-        //// Populate DOM with existing chat messages
-        fetch (`/channels/api/${channel_id}`, {
-            method: "GET"
-        })
-        .then(res => res.json())
-        .then(data => {
-            populateChat(data.post_data, data.current_user)
-        })
-        
-        const form = document.getElementById("chat_form")
     
-        //// Send message event
-        form.addEventListener('submit', function(e) {
-            e.preventDefault()
-            console.log("Submitting message form");
-            sendPost(channel_id) 
-        })
+    //// join user to current channel room
+    socket.emit('joinRoom', channel_id)
+    
+    //// Populate DOM with existing chat messages
+    fetch (`/channels/populated/${channel_id}`, {
+        method: "GET"
+    })
+    .then(res => res.json())
+    .then(data => {
+        populateChat(data.post_data, data.current_user)
+    })
+    
+    //// Message form eventlistener
+    const form = document.getElementById("chat_form")
+    form.addEventListener('submit', function(e) {
+        e.preventDefault()
+        sendPost(channel_id) 
+    })
 }
 
 //// Edit channel
@@ -50,22 +48,25 @@ function deleteChannel() {
     if (confirm("Are you sure you want to delete this channel? The messages will be lost forever.")) {
     
         const channel_id = getChatId()
-        //// Delete channel
+        //// Delete channel and invite docs
         fetch(`/channels/delete/${channel_id}`, {
             method: "DELETE"
         })
-        //// Delete channel invites from users
-        fetch('/users/remove-pending-invites', {
-            method: "PUT",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({channel_id})
-        })
         .then(res => res.json())
-        .then(data => {
-            socket.emit('delete channel', channel_id)
-            window.location.href = '/dashboard'
+        .then(invites => {
+            //// Delete channel invites from users
+            fetch('/users/remove-pending-invites', {
+                method: "PUT",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(invites)
+            })
+            .then(res => res.json())
+            .then(data => {
+                socket.emit('delete channel', channel_id)
+                window.location.href = '/dashboard'
+            })
         })
     }
 }

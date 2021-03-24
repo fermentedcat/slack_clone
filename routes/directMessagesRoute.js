@@ -8,11 +8,11 @@ const { getPostData } = require('../config/posts.js')
 
 ////=== Direct Messages ==== ////
 
-// Add dm
-// Get dm data with formatted messages
-// Go to dm page
+// 1. Add dm
+// 2. Get populated DM
+// 3. Go to dm page
 
-
+//// 1. Add direct message room
 router.post('/add', async (req, res) => {
     const subscribers = req.body.invites
     subscribers.push(req.session.passport.user)
@@ -27,7 +27,6 @@ router.post('/add', async (req, res) => {
                 console.log(error);
                 res.status(500).json({message: 'An error occured'})
             }
-            console.log(dm);
             req.flash('success_msg', 'Dm created!') //* fixa flash
             res.status(201).json(dm)
         })
@@ -37,8 +36,8 @@ router.post('/add', async (req, res) => {
     }
 })
 
-
-router.get('/api/:id', (req, res) => {
+//// 2. Send populated DM to client-side js
+router.get('/populated/:id', (req, res) => {
     const current_user = req.user
 
     DirectMessage.findById(req.params.id)
@@ -56,13 +55,12 @@ router.get('/api/:id', (req, res) => {
     })
 })
 
-
+//// 3. Render DM page
 router.get('/:id', ensureAuthenticated, (req, res) => {
     const current_user = req.user
     DirectMessage.findById(req.params.id)
         .populate('subscribers')
         .then((dm) => {
-            console.log(dm);
             res.render('direct_message', {dm, current_user})
         })
         .catch((error) => {

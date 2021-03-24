@@ -10,17 +10,16 @@ const {ensureAuthenticated} = require('../config/auth.js')
 ////=== Channel/DM POSTS & REPLIES ==== ////
 //* TODO: make more consistent paths
 
-// Add post
-// Add reply
-// Delete post
-// Delete reply
-// Edit post
-// Edit reply
+// 1. Add post
+// 2. Add reply
+// 3. Delete post
+// 4. Delete reply
+// 5. Edit post
+// 6. Edit reply
 
-//* Add post
+//// 1. Add post
 router.put('/add-to-channel/:id', async (req, res) => {
     const is_channel = req.body.location == 'channels'
-    console.log(req.body);
     if (is_channel) { //// Update channel
         Channel.findByIdAndUpdate(req.params.id, {
             $push: {
@@ -35,7 +34,6 @@ router.put('/add-to-channel/:id', async (req, res) => {
                     }
                     
                     const new_post = channel.posts.slice(-1)[0]
-                    console.log(new_post) //* log
                     res.status(201).json(new_post)
                 })
     } else {
@@ -52,13 +50,12 @@ router.put('/add-to-channel/:id', async (req, res) => {
                     }
                     
                     const new_post = dm.posts.slice(-1)[0]
-                    console.log(new_post) //* log
                     res.status(201).json(new_post)
                 })
     }
 })
 
-//* Add reply to post
+//// 2. Add reply to post
 router.put('/:id/add-reply', (req, res) => {
     const post_id = req.params.id
     const chat_id = req.body.chat_id
@@ -111,7 +108,7 @@ router.put('/:id/add-reply', (req, res) => {
     }
 })
 
-//* DELETE POST
+//// 3. DELETE POST
 router.put('/delete/:id', ensureAuthenticated, (req, res) => {
     const is_admin = req.user.role == "Admin";
     const chat_id = req.body.chat_id;
@@ -162,7 +159,7 @@ router.put('/delete/:id', ensureAuthenticated, (req, res) => {
 
 })
 
-//* DELETE REPLY
+//// 4. DELETE REPLY
 router.put('/:post_id/delete-reply/:reply_id', ensureAuthenticated, (req, res) => {
     const is_admin = req.user.role == "Admin";
     const chat_id = req.body.chat_id;
@@ -217,7 +214,7 @@ router.put('/:post_id/delete-reply/:reply_id', ensureAuthenticated, (req, res) =
     }
 })
 
-//* EDIT POST
+//// 5. EDIT POST
 router.put('/edit/:id', ensureAuthenticated, (req, res) => {
     const chat_id = req.body.chat_id;
     const is_channel = req.body.location == 'channels'
@@ -272,12 +269,10 @@ router.put('/edit/:id', ensureAuthenticated, (req, res) => {
     }
 })
 
-//* EDIT REPLY
+//// 6. EDIT REPLY
 router.put('/:post_id/edit-reply/:reply_id', ensureAuthenticated, (req, res) => {
     const chat_id = req.body.chat_id;
     const is_channel = req.body.location == 'channels'
-
-    console.log(req.body);
 
     if (is_channel) { //// Edit channel
         Channel.findById(chat_id).then((channel) => {
@@ -300,7 +295,6 @@ router.put('/:post_id/edit-reply/:reply_id', ensureAuthenticated, (req, res) => 
                         if (error) {
                             res.status(500).json(error)
                         }
-                        console.log(result);
                         res.status(201).json(result)
                     }
                   )
@@ -329,7 +323,6 @@ router.put('/:post_id/edit-reply/:reply_id', ensureAuthenticated, (req, res) => 
                         if (error) {
                             res.status(500).json(error)
                         }
-                        console.log(result);
                         res.status(201).json(result)
                     }
                   )

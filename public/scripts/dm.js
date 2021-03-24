@@ -7,7 +7,7 @@ function fetchDmData() {
         socket.emit('joinRoom', dm_id)
 
         //// Populate DOM with existing chat messages
-        fetch (`/direct-messages/api/${dm_id}`, {
+        fetch (`/direct-messages/populated/${dm_id}`, {
             method: "GET"
         })
         .then(res => res.json())
@@ -20,7 +20,6 @@ function fetchDmData() {
         //// Send message event
         form.addEventListener('submit', function(e) {
             e.preventDefault()
-            console.log("Submitting message form");
             sendPost(dm_id) 
         })
 }
