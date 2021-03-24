@@ -1,10 +1,11 @@
 
 
 function fetchUserData() {
+    //// Check if current user's own profile
+    if (document.getElementById("channel_invites") != undefined) {
     const image_btn = document.getElementById('image_btn')
     image_btn.addEventListener('click', e => {
         const div = document.createElement('div')
-        console.log(e);
         div.innerHTML = `
         <form 
             action="/users/upload-profile-pic" 
@@ -17,7 +18,6 @@ function fetchUserData() {
         image_btn.parentNode.appendChild(div)
     })
 
-    if (document.getElementById("channel_invites") != undefined) {
         fetch(`/users/current-user`, {
             method: "GET"
         })
@@ -33,7 +33,6 @@ function fetchUserData() {
 
 function displayInvites(invite) {
     const invite_div = document.getElementById("channel_invites")
-    console.log(invite_div);
     const div = document.createElement('div')
     div.innerHTML = `
         <div>
@@ -63,14 +62,12 @@ function displayInvites(invite) {
 }
 
 function acceptInvite(invite) {
-    console.log("Accept");
     const channel_id = invite.channel._id
     fetch(`/channels/add-subscriber/${channel_id}`, {
         method: "PUT"
     })
     .then(res => res.json())
     .then(data => {
-        console.log(data.message)
         removeInvite(invite)
     })
 }
@@ -96,14 +93,13 @@ function editUserInfo() {
         occupation: document.getElementById('occupation').value,
     }
     //// Check if username is available
-    fetch(`/api/users/username/${data.username}`, {
+    fetch(`/users/username/${data.username}`, {
         method: "GET",
     })
     .then(res => res.json())
     .then(found_user => {
         if(found_user) {
             //// Display error
-            console.log(found_user);
             username_input.classList.add("is-invalid")
             username_input.focus()
             const div = document.createElement('div')
