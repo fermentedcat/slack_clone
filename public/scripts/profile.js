@@ -1,23 +1,14 @@
-
+function setProfilePic() {
+    //// set profile picture
+    const profile_div = document.getElementById('profile_pic')
+    profile_div.style.backgroundImage = profile_div.getAttribute('data-url')
+}
 
 function fetchUserData() {
     //// Check if current user's own profile
     if (document.getElementById("channel_invites") != undefined) {
-    const image_btn = document.getElementById('image_btn')
-    image_btn.addEventListener('click', e => {
-        const div = document.createElement('div')
-        div.innerHTML = `
-        <form 
-            action="/users/upload-profile-pic" 
-            method="post" 
-            enctype="multipart/form-data">
-                <input type="file" name="profile_pic">
-                <input type="submit" value="Save">
-        </form>
-        `
-        image_btn.parentNode.appendChild(div)
-    })
 
+        //// get user invites
         fetch(`/users/current-user`, {
             method: "GET"
         })
@@ -27,7 +18,35 @@ function fetchUserData() {
                 displayInvites(invite)
             }
         })
+
+        //// upload-image button
+        const image_btn = document.getElementById('image_btn')
+        image_btn.addEventListener('click', e => {
+            const div = document.createElement('div')
+            div.innerHTML = `
+                <form 
+                    action="/users/upload-profile-pic" 
+                    method="post" 
+                    enctype="multipart/form-data">
+                    <label class="btn btn-primary">
+                        Choose image
+                        <input name="profile_pic" type="file"/>
+                    </label>
+                    <input class="btn btn-warning" type="submit" value="Save">
+                    <input class="btn btn-secondary" type="button" onClick="exitUploadImage()" value="Never mind">
+                </form>`
+            div.id = "upload_div"
+            image_btn.parentNode.appendChild(div)
+            image_btn.style.display = "none"
+        })   
     }
+}
+
+function exitUploadImage() {
+    const image_btn = document.getElementById('image_btn')
+    const upload_div = document.getElementById('upload_div')
+    image_btn.style.display = "block"
+    upload_div.remove()
 }
 
 
@@ -84,6 +103,7 @@ function removeInvite(invite) {
 
 function editUserInfo() {
     const username_input = document.getElementById('username')
+    
     const data = {
         first_name: document.getElementById('first_name').value,
         last_name: document.getElementById('last_name').value,
@@ -91,6 +111,7 @@ function editUserInfo() {
         phone: document.getElementById('phone').value,
         fav_pizza: document.getElementById('fav_pizza').value,
         occupation: document.getElementById('occupation').value,
+        birthday: document.getElementById('birthday').value
     }
     //// Check if username is available
     fetch(`/users/username/${data.username}`, {
