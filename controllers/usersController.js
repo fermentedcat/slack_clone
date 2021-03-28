@@ -4,6 +4,8 @@ const fs = require('fs')
 
 const User = require('../models/user')
 const Invite = require('../models/invite')
+const Channel = require('../models/channel')
+const DirectMessage = require('../models/direct_message')
 
 const { getOnlineUsers } = require('../config/onlineStatus.js')
 const { formatDate } = require('../config/format')
@@ -26,6 +28,8 @@ const { formatDate } = require('../config/format')
 
 // 11. Check existing username
 // 12. Send all online statuses
+
+// 13. Render dashboard
 
 // 1.
 exports.loginUser = (req, res, next) => {
@@ -119,7 +123,6 @@ exports.renderProfile = (req, res) => {
     try {
         if(fs.existsSync(dir)) {
             path = `/public/images/profile/${user_id}`
-            console.log(path);
         } else {
             path = "/public/images/profile/default.png"
         }
@@ -269,7 +272,6 @@ exports.uploadProfilePic = (req, res) => {
     try {
         if (req.files) {
             let profile_pic = req.files.profile_pic
-            console.log(profile_pic);
             const accepted_files = ['image/jpeg','image/png']
             const is_image = accepted_files.includes(profile_pic.mimetype);
             if (is_image) {
@@ -333,4 +335,37 @@ exports.getOnlineStatuses = (req, res) => {
             res.json(online_users)
         }
     })
+}
+
+// 13.
+exports.renderDashboard = (req, res) => {
+    const page_data = { current_user: req.user, channels: [], users: [], dms: [] }
+    Channel.find(
+        {$or: [
+            {private: false}, 
+            {subscribers: req.user}]}
+        )
+        .exec((error, channels) => {
+            if (error) {
+                res.render('dashboard', page_data)
+            }
+            page_data.channels = channels
+
+            User.find({}).exec((error, users) => {
+                if (error) {
+                    res.render('dashboard', page_data)
+                }
+                page_data.users = users
+
+                DirectMessage.find({subscribers: req.user})
+                    .populate('subscribers')
+                    .exec((error, dms) => {
+                        if (error) {
+                            res.render('dashboard', page_data)
+                        }
+                        page_data.dms = dms
+                        res.render('dashboard', page_data)
+                })
+            })
+        })
 }
