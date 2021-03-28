@@ -55,6 +55,10 @@
   padding: 10px;
 }
 
+.channel_invites_container p {
+  margin: 0;
+}
+
 .dm_username {
   padding: 5px;
 }
@@ -78,5 +82,34 @@ ul li a.btn-secondary {
   background-color: #f3f3f3;
   border-color: #f3f3f3;
   color: black;
+}
+
+.profile_pic_container div#profile_pic {
+  width: 80vw;
+  height: 80vw;
+  max-width: 400px;
+  max-height: 400px;
+  background-position: center;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.profile_pic_container input[type="file"] {
+  display: none;
+}
+
+.avatar {
+  overflow: hidden;
+  width: 1em;
+  height: 1em;
+  border-radius: 100%;
+}
+
+.avatar img {
+  max-width: 100%;
+}
+
+button, input.btn {
+  margin: 1em 0 1em 0;
 }
 /*# sourceMappingURL=style.css.map */
