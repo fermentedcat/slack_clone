@@ -44,14 +44,26 @@ router.get('/dashboard', ensureAuthenticated, (req, res) => {
             })
         })
 })
+
+
+////  Register
+router.get('/register', (req, res) => {
+    res.render('register', {layout: false})
+})
+////  Login
+router.get('/login', (req, res) => {
+    res.render('login', {layout: false})
+})
+
 //* TODO: make landing page
 //// Redirect user to login or dashboard
 router.get('/', (req, res) => {
     if (req.isAuthenticated()) {
         res.redirect('/dashboard')
     }
-    res.render('login', {layout: false})
+    res.redirect('/login')
 })
+
 
 
 module.exports = router
