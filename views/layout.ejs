@@ -12,22 +12,13 @@
     <header>
         <h1 class="text-center">s1ack</h1>
         <nav>
-            <ul>
+            <ul id="nav-links">
                 <li>
                     <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
                 </li>
                 <li>
                     <a href="/users/logout" class="btn btn-secondary">Logout</a>
                 </li>
-                <% if (current_user.role == 'Admin') { %> 
-                    <li>
-                        <a href="/admin" class="btn btn-secondary">Admin</a>
-                    </li>
-                <% } else { %> 
-                    <li>
-                        <a href="/users/<%= current_user._id %>" class="btn btn-secondary">Profile</a>
-                    </li>
-                <% } %> 
             </ul>
         </nav>
     </header>
@@ -37,8 +28,8 @@
 
     <%- body %> 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/public/scripts/main.js"></script>
     <script src="/public/scripts/profile.js"></script>
-    <script src="/public/scripts/socket.js"></script>
     <script src="/public/scripts/channel.js"></script>
     <script src="/public/scripts/dm.js"></script>
     <script src="/public/scripts/messages.js"></script>

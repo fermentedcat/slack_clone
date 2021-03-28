@@ -1,5 +1,4 @@
 const socket = io()
-// import { addPost, addReply, populateChat } from "/public/scripts/dashboard.js" //* funkar inte med moduler..?
 
 let current_user = {}
 
@@ -18,19 +17,31 @@ document.addEventListener('DOMContentLoaded', e => {
         fetchDmData() 
     } else if (path == 'users') {
         fetchUserData()
+        setProfilePic()
     }
+
+    //// Fetch current user
+    fetch('/users/current-user', {
+        method: "GET"
+    })
+    .then(res => res.json())
+    .then(user => {
+        const nav_links = document.getElementById('nav-links')
+        const li = document.createElement('li')
+        li.innerHTML = `<a href="/users/${user._id}" class="btn btn-secondary">Profile</a>`
+        nav_links.appendChild(li)
+
+        if (user.role == 'Admin') {
+            const li = document.createElement('li')
+            li.innerHTML = `<a href="/admin" class="btn btn-secondary">Admin</a>`
+            nav_links.appendChild(li)
+        }
+        current_user = user
+        // store current user with socket id in server & emit to others
+        socket.emit("online", user)
+    })
 })
 
-//// Fetch current user
-fetch('/users/current-user', {
-    method: "GET"
-})
-.then(res => res.json())
-.then(user => {
-    // store current user with socket id in server
-    current_user = user
-    socket.emit("online", user)
-})
 
 
 //// SIDEBAR ////
