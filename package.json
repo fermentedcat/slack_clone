@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "fermentedcat"
+    "url": "git+https//github.com/fermentedcat/slack_clone.git"
   },
   "author": "Maja Thunberg",
   "license": "ISC",
