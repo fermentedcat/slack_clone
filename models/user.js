@@ -49,6 +49,10 @@ const UserSchema = new Schema({
         type: String,
         required: false
     },
+    birthday: {
+        type: Date,
+        required: false
+    },
 })
 
 module.exports = mongoose.model('User', UserSchema)
