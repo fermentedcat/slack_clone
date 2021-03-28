@@ -5,7 +5,6 @@ const postsController         = require('../controllers/postsController')
 const { ensureAuthenticated } = require('../config/auth.js')
 
 ////=== Channel/DM POSTS & REPLIES ==== ////
-//* TODO: make more consistent paths
 
 // 1. Add post
 // 2. Add reply
@@ -15,7 +14,7 @@ const { ensureAuthenticated } = require('../config/auth.js')
 // 6. Edit reply
 
 //// 1. Add post
-router.put('/add-to-channel/:id', postsController.addPost)
+router.put('/add/:id', postsController.addPost)
 
 //// 2. Add reply to post
 router.put('/:id/add-reply', postsController.addReply)

@@ -29,7 +29,7 @@ function editChannelInfo() {
         description: document.getElementById('channel_descr_input').value,
         private: document.getElementById('private').checked,
     }
-    fetch(`/channels/edit/${channel_id}`, {
+    fetch(`/channels/${channel_id}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json'
@@ -49,7 +49,7 @@ function deleteChannel() {
     
         const channel_id = getChatId()
         //// Delete channel and invite docs
-        fetch(`/channels/delete/${channel_id}`, {
+        fetch(`/channels/${channel_id}`, {
             method: "DELETE"
         })
         .then(res => res.json())

@@ -11,12 +11,6 @@ const { ensureAuthenticated }   = require('../config/auth.js')
 //// 1. Add new channel
 router.post('/add', channelsController.addChannel)
 
-//// 2. Edit channel info
-router.patch('/edit/:id', channelsController.editChannel)
-
-//// 3. Delete channel and any docs of invites connected to it
-router.delete('/delete/:id', ensureAuthenticated, channelsController.deleteChannel)
-
 //// 4. Add new subscriber to channel
 router.put('/add-subscriber/:id', channelsController.addSubscriber)
 
@@ -26,8 +20,12 @@ router.put('/remove-subscriber/:id', channelsController.removeSubscriber)
 //// 6. Send populated Channel to client-side js
 router.get('/populated/:id', channelsController.getChannelData)
 
-//// 7. Render channel
-router.get('/:id', ensureAuthenticated, channelsController.renderChannel)
+//// 7. Render, edit, delete channel
+router
+    .route('/:id')
+    .get(ensureAuthenticated, channelsController.renderChannel)
+    .patch(channelsController.editChannel)
+    .delete(ensureAuthenticated, channelsController.deleteChannel)
 
 
 module.exports = router

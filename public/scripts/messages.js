@@ -50,7 +50,7 @@ function addPost(post) {
         const edit_button = document.createElement("button")
         edit_button.className = "btn btn-warning"
         edit_button.innerHTML = "Edit"
-        edit_button.addEventListener("click", (e) => editPost(e, post._id))
+        edit_button.addEventListener("click", (e) => toggleEditPost(e, post._id))
         buttons_div.appendChild(edit_button)
     }
     if (post.author._id == current_user._id || current_user.role == "Admin") {
@@ -99,9 +99,93 @@ function addReply(post_id, reply) {
     replies_div.appendChild(reply_div)
 }
 
+//* Toggle reply input field on DOM
+const toggleReply = (e) => {
+    // Remove previous reply input
+    const prev_reply_form = document.getElementById('reply_form')
+        if (prev_reply_form) {
+            prev_reply_form.previousSibling.style.display = "block"
+            prev_reply_form.remove()
+        }
+
+        e = e || window.event
+        e.target.style.display = "none"
+        const post_id = e.target.parentNode.getAttribute('data-id')
+
+        const reply_form = document.createElement('form')
+        reply_form.id = "reply_form"
+        reply_form.innerHTML = `
+            <input 
+                type="text"
+                id="reply_msg"
+                placeholder="Reply"
+                autocomplete="off"
+                required
+                autofocus
+                >
+            <button class="btn btn-primary">Send</button>
+            <input type="hidden" value="${post_id}" id="post">
+        `
+        e.target.parentNode.appendChild(reply_form)
+
+        //// Handle reply message
+        reply_form.addEventListener('submit', e => {
+        e.preventDefault()
+        const reply_input = reply_form.elements.reply_msg
+        const reply = reply_input.value
+
+        if (reply.trim().length > 0) {
+            sendReply(reply, post_id)
+        }
+        reply_input.value = ''
+    })
+}
+
+//* Send new message
+function sendPost(chat_id) {
+    const location = getLocation()
+    const input = document.getElementById('msg')
+    if (input.value.trim().length > 0) {            
+        //// Add message to channel in db
+        const content = input.value
+        fetch(`/posts/add/${chat_id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({content, location})
+        })
+        .then(res => res.json())
+        .then(message => {
+            socket.emit('chat message', message)
+        })
+    }
+    input.value = ''
+}
+
+//* SEND new reply
+function sendReply(reply, post_id) {
+    const location = getLocation()
+    const data = {
+        chat_id: getChatId(),
+        content: reply,
+        location: location
+    }
+    fetch(`/posts/${post_id}/add-reply`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    }).then(res => res.json())
+    .then(data => {
+        socket.emit('reply message', ({message: data, post_id: post_id}))
+    })
+}
+
 
 //* Edit post
-function editPost(e, post_id) {
+function toggleEditPost(e, post_id) {
     const buttons_div = document.getElementById(`buttons_${post_id}`)
     buttons_div.style.display = "none"
     const post_content = document.getElementById(`content_${post_id}`)
@@ -130,13 +214,13 @@ function editPost(e, post_id) {
         const location = getLocation()
         const chat_id = getChatId()
         const new_value = container.firstElementChild.value
+        //* Edit post
         if (new_value.trim().length > 0) {
             const data = {
                 new_value,
                 chat_id,
                 location
             }
-            console.log(data);
             fetch(`/posts/edit/${post_id}`, {
                 method: "PUT",
                 headers: {
@@ -159,76 +243,10 @@ function editPost(e, post_id) {
     }
 }
 
-//* Send new message
-function sendPost(chat_id) {
-    console.log("Attempting to send message");
-    const location = getLocation()
-    const input = document.getElementById('msg')
-    if (input.value.trim().length > 0) {            
-        //// Add message to channel in db
-        const content = input.value
-        fetch(`/posts/add-to-channel/${chat_id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({content, location})
-        })
-        .then(res => res.json())
-        //* handle error?
-        .then(message => {
-            socket.emit('chat message', message)
-        })
-    }
-    input.value = ''
-}
 
-//* SEND new reply
-function sendReply(reply, post_id) {
-    console.log("post_id" + post_id);
-    const location = getLocation()
-    const data = {
-        chat_id: getChatId(),
-        content: reply,
-        location: location
-    }
-    fetch(`/posts/${post_id}/add-reply`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    }).then(res => res.json())
-    .then(data => {
-        socket.emit('reply message', ({message: data, post_id: post_id}))
-    })
-}
-
-//* Delete post
-function deletePost(e, post_id) {
-    const chat_id = getChatId()
-    const location = getLocation()
-    if (confirm("Are you sure you want to delete this message?")) {
-        fetch(`/posts/delete/${post_id}`, {
-            method: "PUT",
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({chat_id, location})
-        })
-        .then(res => res.json())
-        .then(data => {
-            console.log(data);
-            socket.emit("delete msg", post_id)
-        }) 
-    } 
-}
-
-
-//* Edit reply
+//* Toggle edit reply
 function toggleEditReply(post_id, reply_id) {
     const buttons_div = document.getElementById(`buttons_${reply_id}`)
-    console.log(buttons_div);
     buttons_div.style.display = "none"
     const reply_content = document.getElementById(`content_${reply_id}`)
     const value = reply_content.innerHTML
@@ -274,7 +292,6 @@ function editReply(new_value, chat_id, post_id, reply_id) {
         chat_id,
         location
     }
-    console.log(data);
     fetch(`/posts/${post_id}/edit-reply/${reply_id}`, {
         method: "PUT",
         headers: {
@@ -288,12 +305,33 @@ function editReply(new_value, chat_id, post_id, reply_id) {
     })
 }
 
+
+//* Delete post
+function deletePost(e, post_id) {
+    const chat_id = getChatId()
+    const location = getLocation()
+    if (confirm("Are you sure you want to delete this message?")) {
+        fetch(`/posts/delete/${post_id}`, {
+            method: "PUT",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({chat_id, location})
+        })
+        .then(res => res.json())
+        .then(data => {
+            socket.emit("delete msg", post_id)
+        }) 
+    } 
+}
+
+
+
 //* Delete reply
 function deleteReply(post_id, reply_id) {
     const chat_id = getChatId()
     const location = getLocation()
 
-    console.log(post_id + " " + reply_id);
     if (confirm("Are you sure you want to delete this message?")) {
         fetch(`/posts/${post_id}/delete-reply/${reply_id}`, {
             method: "PUT",
@@ -304,52 +342,8 @@ function deleteReply(post_id, reply_id) {
         })
         .then(res => res.json())
         .then(data => {
-            console.log(data);
             socket.emit("delete msg", reply_id)
         }) 
     }
-}
-
-
-//* Toggle reply input field on DOM
-const toggleReply = (e) => {
-    // Remove previous reply input
-    const prev_reply_form = document.getElementById('reply_form')
-        if (prev_reply_form) {
-            prev_reply_form.previousSibling.style.display = "block"
-            prev_reply_form.remove()
-        }
-
-        e = e || window.event
-        e.target.style.display = "none"
-        const post_id = e.target.parentNode.getAttribute('data-id')
-
-        const reply_form = document.createElement('form')
-        reply_form.id = "reply_form"
-        reply_form.innerHTML = `
-            <input 
-                type="text"
-                id="reply_msg"
-                placeholder="Reply"
-                autocomplete="off"
-                required
-                autofocus
-                >
-            <button class="btn btn-primary">Send</button>
-            <input type="hidden" value="${post_id}" id="post">
-        `
-        e.target.parentNode.appendChild(reply_form)
-
-        //// Handle reply message
-        reply_form.addEventListener('submit', e => {
-        e.preventDefault()
-        const reply_input = reply_form.elements.reply_msg
-        const reply = reply_input.value
-
-        if (reply.trim().length > 0) {
-            sendReply(reply, post_id)
-        }
-        reply_input.value = ''
-    })
 }
 
