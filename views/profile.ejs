@@ -1,9 +1,8 @@
 <h1><%= user.first_name %> <%= user.last_name %></h1>
-<div>
-    <div class="w-50 h-50" id="profile_pic" data-id="<%= user._id %>">
-        <img class="img-fluid" src="<%= img_url %>" alt="<%= user.username %>'s profile picture.">
+<div class="profile_pic_container">
+    <div id="profile_pic" data-url="url(<%= img_url %>)" data-id="<%= user._id %>">
     </div>
-    <%- include('partials/messages') %> 
+
     <% if (current_user_id == user._id) {%> 
         <button id="image_btn" class="btn btn-primary">Upload new image</button>
     <% } %> 
@@ -17,7 +16,15 @@
     <h5>Phone number: <%= user.phone %> </h5>
 <% } %> 
 <h5>Email address: <%= user.email %> </h5>
-<h5>Registered: <%= user.registered.date %> </h5>
+<% if (user.birthday) { %>
+    <h5>Birthday: <%= user.birthday.toISOString().slice(0,10) %> </h5>
+<% } %> 
+<% if (user.fav_pizza) { %>
+    <h5>Favorite pizza: <%= user.fav_pizza %> </h5>
+<% } %> 
+<% if (user.occupation) { %>
+    <h5>What I do: <%= user.occupation %> </h5>
+<% } %> 
 
 <% if (current_user_id == user._id) {%>
     <div class="channel_invites_container">
@@ -47,7 +54,7 @@
         <div class="modal-body">
             <form>
                 <div class="mb-3">
-                    <label for="first_name" class="form-label">First name</label>
+                    <label for="first_name" class="form-label">First name*</label>
                     <input
                         type="text"
                         class="form-control"
@@ -58,7 +65,7 @@
                     />
                 </div>
                 <div class="mb-3">
-                    <label for="last_name" class="form-label">Last name</label>
+                    <label for="last_name" class="form-label">Last name*</label>
                     <input
                         type="text"
                         class="form-control"
@@ -68,7 +75,7 @@
                     />
                 </div>
                 <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
+                    <label for="username" class="form-label">Username*</label>
                     <input
                         type="text"
                         class="form-control"
@@ -97,6 +104,18 @@
                         id="fav_pizza"
                         placeholder="Hawaii"
                         value="<%= user.fav_pizza %>"
+                    />
+                </div>
+
+                <div class="mb-3">
+                    <label for="birthday" class="form-label">Birthday</label>
+                    <input
+                        type="date"
+                        class="form-control"
+                        id="birthday"
+                        <% if (user.birthday) { %> 
+                            value="<%= user.birthday.toISOString().slice(0,10) %>"
+                        <% } %> 
                     />
                 </div>
     
