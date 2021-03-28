@@ -64,7 +64,7 @@
             <form action="/channels/add" method="post">
                 <ul>
                     <% for (user of users) {%> 
-                        <% if (user._id != current_user._id) { %> 
+                        <% if (JSON.stringify(user._id) != JSON.stringify(current_user._id)) { %> 
                             <li>
                                 <input 
                                     name="dm_user" 

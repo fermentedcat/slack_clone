@@ -59,7 +59,6 @@ function startDirectMessage() {
     })
     .then(res => res.json())
     .then(dm => {
-        console.log(dm);
         socket.emit('new dm', dm)
         window.location.href = `/direct-messages/${dm._id}`
     })

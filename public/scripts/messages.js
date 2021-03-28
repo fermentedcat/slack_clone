@@ -322,7 +322,6 @@ const toggleReply = (e) => {
 
         e = e || window.event
         e.target.style.display = "none"
-        console.log(e.target.parentNode);
         const post_id = e.target.parentNode.getAttribute('data-id')
 
         const reply_form = document.createElement('form')

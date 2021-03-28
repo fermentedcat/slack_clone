@@ -62,7 +62,7 @@ function deleteChannel() {
                 },
                 body: JSON.stringify(invites)
             })
-            .then(res => res.json())
+            .then(res => {})
             .then(data => {
                 socket.emit('delete channel', channel_id)
                 window.location.href = '/dashboard'
